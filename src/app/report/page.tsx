@@ -16,6 +16,7 @@ export default function ReportPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showConsult, setShowConsult] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
   const [debugInfo, setDebugInfo] = useState<string>("");
@@ -131,7 +132,39 @@ export default function ReportPage() {
     }
   }, []);
 
-  const handleExport = useCallback(async () => {
+  // Toast 自动消失
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  // 保存报告 - 将评估数据保存到 localStorage
+  const handleSaveReport = useCallback(() => {
+    if (!formData || !result) return;
+    try {
+      const saveData = {
+        savedAt: new Date().toISOString(),
+        formData,
+        result,
+      };
+      // 保存到 localStorage（持久化）
+      const history = JSON.parse(localStorage.getItem("assessmentHistory") || "[]");
+      history.unshift(saveData);
+      // 最多保留 20 条记录
+      if (history.length > 20) history.length = 20;
+      localStorage.setItem("assessmentHistory", JSON.stringify(history));
+      // 同时标记当前 session 已保存
+      sessionStorage.setItem("assessmentSaved", "true");
+      setToast({ message: "报告已保存成功", type: "success" });
+    } catch (err) {
+      console.error("Save failed:", err);
+      setToast({ message: "保存失败，请重试", type: "error" });
+    }
+  }, [formData, result]);
+
+  // 下载长图 - html2canvas 截图生成 PNG
+  const handleDownloadImage = useCallback(async () => {
     if (!reportRef.current) return;
     setExporting(true);
     try {
@@ -145,8 +178,10 @@ export default function ReportPage() {
       link.download = `建筑节能评估报告_${formData?.city || ""}_${new Date().toLocaleDateString("zh-CN")}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
+      setToast({ message: "长图已下载", type: "success" });
     } catch (err) {
       console.error("Export failed:", err);
+      setToast({ message: "导出失败，请重试", type: "error" });
     } finally {
       setExporting(false);
     }
@@ -212,6 +247,24 @@ export default function ReportPage() {
         <ConsultModal onClose={() => setShowConsult(false)} />
       )}
 
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-fade-in">
+          <div className={`px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 ${
+            toast.type === "success"
+              ? "bg-emerald-500/90 text-white"
+              : "bg-red-500/90 text-white"
+          }`}>
+            {toast.type === "success" ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            )}
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-10 bg-[#0f172a]/95 backdrop-blur-sm border-b border-slate-700/50">
         <div className="max-w-lg mx-auto px-4 py-3">
@@ -229,7 +282,7 @@ export default function ReportPage() {
           {/* Action buttons */}
           <div className="flex gap-2">
             <button
-              onClick={() => requireAuth(() => handleExport())}
+              onClick={() => requireAuth(handleSaveReport)}
               disabled={exporting}
               className="flex-1 py-2 px-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
             >
@@ -237,12 +290,12 @@ export default function ReportPage() {
               {exporting ? "导出中..." : "保存报告"}
             </button>
             <button
-              onClick={() => requireAuth(() => handleExport())}
+              onClick={() => requireAuth(handleDownloadImage)}
               disabled={exporting}
               className="flex-1 py-2 px-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 text-slate-300 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-              下载长图
+              {exporting ? "导出中..." : "下载长图"}
             </button>
             <button
               onClick={() => setShowConsult(true)}

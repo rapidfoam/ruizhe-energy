@@ -433,9 +433,9 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-2xl p-6 animate-fade-in">
-        <div className="text-center mb-6">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 animate-fade-in max-h-[90vh] overflow-y-auto">
+        <div className="text-center mb-5">
           <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mx-auto mb-3">
             <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -489,12 +489,14 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
         <p className="text-[10px] text-slate-600 text-center mt-4">
           注册即表示同意《用户服务协议》和《隐私政策》
         </p>
-        <button
-          onClick={onSuccess}
-          className="w-full mt-3 py-2 text-xs text-slate-500 hover:text-amber-400 transition-colors"
-        >
-          跳过注册（测试模式）
-        </button>
+        <div className="mt-4 pt-3 border-t border-slate-700/50">
+          <button
+            onClick={onSuccess}
+            className="w-full py-2.5 text-sm text-amber-400/80 hover:text-amber-400 border border-amber-500/20 hover:border-amber-500/40 rounded-lg transition-colors bg-amber-500/5"
+          >
+            跳过注册（测试模式）
+          </button>
+        </div>
       </div>
     </div>
   );

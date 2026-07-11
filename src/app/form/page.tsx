@@ -28,6 +28,7 @@ export default function FormPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState<"right" | "left">("right");
+  const [validationError, setValidationError] = useState("");
   const [formData, setFormData] = useState<FormData>({
     city: "",
     climateZone: null,
@@ -43,27 +44,47 @@ export default function FormPage() {
 
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+    setValidationError("");
   }, []);
 
+  const getValidationError = (): string => {
+    switch (step) {
+      case 0: return !formData.city ? "请选择城市" : "";
+      case 1: return !formData.buildingType ? "请选择建筑类型" : "";
+      case 2:
+        if (!formData.wallBase) return "请选择基层墙体";
+        if (!formData.wallInsulation) return "请选择保温层材料";
+        if (formData.wallInsulation !== "none" && !formData.wallInsulationThickness) return "请选择保温层厚度";
+        return "";
+      case 3:
+        if (!formData.roofBase) return "请选择屋面基层";
+        if (!formData.roofInsulation) return "请选择屋面保温层材料";
+        if (formData.roofInsulation !== "roof_none" && !formData.roofInsulationThickness) return "请选择保温层厚度";
+        return "";
+      case 4: return !formData.windowConfig ? "请选择外窗类型" : "";
+      default: return "";
+    }
+  };
+
   const nextStep = () => {
+    const error = getValidationError();
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+    setValidationError("");
     if (step < 4) { setDirection("right"); setStep((s) => s + 1); }
   };
   const prevStep = () => {
     if (step > 0) { setDirection("left"); setStep((s) => s - 1); }
   };
 
-  const canProceed = useMemo(() => {
-    switch (step) {
-      case 0: return formData.city !== "";
-      case 1: return formData.buildingType !== null;
-      case 2: return formData.wallBase !== "" && formData.wallInsulation !== "";
-      case 3: return formData.roofBase !== "" && formData.roofInsulation !== "";
-      case 4: return formData.windowConfig !== "";
-      default: return false;
-    }
-  }, [step, formData]);
-
   const handleSubmit = () => {
+    const error = getValidationError();
+    if (error) {
+      setValidationError(error);
+      return;
+    }
     if (!formData.city || !formData.climateZone || !formData.buildingType) return;
 
     const zone = formData.climateZone;
@@ -180,6 +201,16 @@ export default function FormPage() {
       </div>
 
       <div className="sticky bottom-0 bg-[#0f172a]/95 backdrop-blur-sm border-t border-slate-700/50">
+        {validationError && (
+          <div className="px-4 pt-2">
+            <p className="text-xs text-amber-400 flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              {validationError}
+            </p>
+          </div>
+        )}
         <div className="max-w-lg mx-auto px-4 py-3 flex gap-3">
           {step > 0 && (
             <button onClick={prevStep} className="flex-1 px-4 py-3 rounded-lg border border-slate-600 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors">
@@ -187,11 +218,11 @@ export default function FormPage() {
             </button>
           )}
           {step < 4 ? (
-            <button onClick={nextStep} disabled={!canProceed} className="flex-1 px-4 py-3 rounded-lg bg-blue-500 hover:bg-blue-400 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-medium transition-all">
+            <button onClick={nextStep} className="flex-1 px-4 py-3 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-sm font-medium transition-all">
               下一步
             </button>
           ) : (
-            <button onClick={handleSubmit} disabled={!canProceed} className="flex-1 px-4 py-3 rounded-lg bg-blue-500 hover:bg-blue-400 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-medium transition-all">
+            <button onClick={handleSubmit} className="flex-1 px-4 py-3 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-sm font-medium transition-all">
               生成评估报告
             </button>
           )}
@@ -337,15 +368,21 @@ function StepWall({ formData, updateField }: StepProps) {
       </div>
       {formData.wallInsulation && formData.wallInsulation !== "none" && (
         <div>
-          <label className="text-xs font-medium text-slate-400 mb-2 block">保温层厚度</label>
+          <label className="text-xs font-medium text-slate-400 mb-1 block">
+            保温层厚度 <span className="text-amber-400">*</span>
+          </label>
+          <p className="text-[10px] text-slate-500 mb-2">常见厚度: {thicknesses.join(" / ")} mm</p>
           <div className="flex flex-wrap gap-2">
             {thicknesses.map((t) => (
               <button key={t} onClick={() => updateField("wallInsulationThickness", t)}
-                className={`px-3 py-2 rounded-lg text-sm font-mono transition-all ${formData.wallInsulationThickness === t ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:border-slate-600"}`}>
+                className={`px-3 py-2 rounded-lg text-sm font-mono transition-all ${formData.wallInsulationThickness === t ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 ring-1 ring-blue-500/30" : "bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:border-slate-600"}`}>
                 {t}mm
               </button>
             ))}
           </div>
+          {!formData.wallInsulationThickness && (
+            <p className="text-[10px] text-amber-400 mt-1.5">请选择保温层厚度</p>
+          )}
         </div>
       )}
       {selectedBase && selectedIns && (
@@ -401,15 +438,21 @@ function StepRoof({ formData, updateField }: StepProps) {
       </div>
       {formData.roofInsulation && formData.roofInsulation !== "roof_none" && (
         <div>
-          <label className="text-xs font-medium text-slate-400 mb-2 block">保温层厚度</label>
+          <label className="text-xs font-medium text-slate-400 mb-1 block">
+            保温层厚度 <span className="text-amber-400">*</span>
+          </label>
+          <p className="text-[10px] text-slate-500 mb-2">常见厚度: {thicknesses.join(" / ")} mm</p>
           <div className="flex flex-wrap gap-2">
             {thicknesses.map((t) => (
               <button key={t} onClick={() => updateField("roofInsulationThickness", t)}
-                className={`px-3 py-2 rounded-lg text-sm font-mono transition-all ${formData.roofInsulationThickness === t ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:border-slate-600"}`}>
+                className={`px-3 py-2 rounded-lg text-sm font-mono transition-all ${formData.roofInsulationThickness === t ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 ring-1 ring-blue-500/30" : "bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:border-slate-600"}`}>
                 {t}mm
               </button>
             ))}
           </div>
+          {!formData.roofInsulationThickness && (
+            <p className="text-[10px] text-amber-400 mt-1.5">请选择保温层厚度</p>
+          )}
         </div>
       )}
       {selectedBase && selectedIns && (

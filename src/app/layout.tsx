@@ -1,10 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "建筑节能水平评估系统",
   description: "专业建筑围护结构节能评估，自动计算K值并对比国家标准限值",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({

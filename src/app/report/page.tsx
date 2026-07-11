@@ -489,6 +489,12 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
         <p className="text-[10px] text-slate-600 text-center mt-4">
           注册即表示同意《用户服务协议》和《隐私政策》
         </p>
+        <button
+          onClick={onSuccess}
+          className="w-full mt-3 py-2 text-xs text-slate-500 hover:text-amber-400 transition-colors"
+        >
+          跳过注册（测试模式）
+        </button>
       </div>
     </div>
   );

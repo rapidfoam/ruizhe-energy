@@ -766,7 +766,7 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
 
   // 检测短信服务是否启用
   useEffect(() => {
-    fetch('/api/register?check=1')
+    fetch('/api/auth/sms-status')
       .then(res => res.json())
       .then(data => setSmsEnabled(!!data.smsEnabled))
       .catch(() => setSmsEnabled(false));
@@ -787,7 +787,7 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, action: 'send' }),
@@ -825,7 +825,7 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
         body.action = 'verify';
         body.code = code;
       }
-      const res = await fetch('/api/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

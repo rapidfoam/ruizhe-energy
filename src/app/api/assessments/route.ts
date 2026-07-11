@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      recordId: result.recordId,
+      recordId: result.recordId || null,
     });
   } catch (error) {
     console.error('Failed to save assessment:', error);

@@ -105,15 +105,17 @@ export async function createAssessmentRecord(data: {
 }): Promise<{ success: boolean; recordId?: string; error?: string }> {
   const token = await getTenantAccessToken();
   if (!token) {
-    return { success: false, error: 'Failed to get Feishu access token' };
+    // 飞书未配置时优雅降级，返回成功但不写入数据
+    console.info('[Feishu] 飞书服务未配置，跳过数据写入');
+    return { success: true };
   }
 
   const appToken = process.env.FEISHU_TABLE_APP_TOKEN;
   const tableId = process.env.FEISHU_TABLE_ID;
 
   if (!appToken || !tableId) {
-    console.warn('[Feishu] Missing FEISHU_TABLE_APP_TOKEN or FEISHU_TABLE_ID');
-    return { success: false, error: 'Missing table configuration' };
+    console.info('[Feishu] 表格配置不完整，跳过数据写入');
+    return { success: true };
   }
 
   // 构建字段映射
@@ -179,14 +181,17 @@ export async function updateRecordPhone(
 ): Promise<{ success: boolean; error?: string }> {
   const token = await getTenantAccessToken();
   if (!token) {
-    return { success: false, error: 'Failed to get Feishu access token' };
+    // 飞书未配置时优雅降级
+    console.info('[Feishu] 飞书服务未配置，跳过更新手机号');
+    return { success: true };
   }
 
   const appToken = process.env.FEISHU_TABLE_APP_TOKEN;
   const tableId = process.env.FEISHU_TABLE_ID;
 
   if (!appToken || !tableId) {
-    return { success: false, error: 'Missing table configuration' };
+    console.info('[Feishu] 表格配置不完整，跳过更新手机号');
+    return { success: true };
   }
 
   try {
@@ -228,14 +233,16 @@ export async function listAssessmentRecords(options?: {
 }): Promise<{ success: boolean; data?: FeishuListResponse['data']; error?: string }> {
   const token = await getTenantAccessToken();
   if (!token) {
-    return { success: false, error: 'Failed to get Feishu access token' };
+    console.info('[Feishu] 飞书服务未配置，返回空列表');
+    return { success: true, data: { items: [], total: 0, has_more: false } };
   }
 
   const appToken = process.env.FEISHU_TABLE_APP_TOKEN;
   const tableId = process.env.FEISHU_TABLE_ID;
 
   if (!appToken || !tableId) {
-    return { success: false, error: 'Missing table configuration' };
+    console.info('[Feishu] 表格配置不完整，返回空列表');
+    return { success: true, data: { items: [], total: 0, has_more: false } };
   }
 
   const params = new URLSearchParams();

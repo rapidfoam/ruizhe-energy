@@ -757,24 +757,78 @@ function ConsultModal({ onClose }: { onClose: () => void }) {
 
 function AuthModal({ onSuccess }: { onSuccess: () => void }) {
   const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [smsEnabled, setSmsEnabled] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
-  const handleRegister = async () => {
+  // 检测短信服务是否启用
+  useEffect(() => {
+    fetch('/api/register?check=1')
+      .then(res => res.json())
+      .then(data => setSmsEnabled(!!data.smsEnabled))
+      .catch(() => setSmsEnabled(false));
+  }, []);
+
+  // 倒计时
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleSendCode = async () => {
     if (!/^1[3-9]\d{9}$/.test(phone)) {
       setError("请输入正确的手机号");
       return;
     }
     setError("");
     setLoading(true);
-    
     try {
-      // 调用注册 API 更新飞书记录的手机号
-      const recordId = sessionStorage.getItem("assessmentRecordId") || "";
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, recordId }),
+        body: JSON.stringify({ phone, action: 'send' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCodeSent(true);
+        setCountdown(60);
+      } else {
+        setError(data.error || "发送失败");
+      }
+    } catch {
+      setError("网络错误，请重试");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      setError("请输入正确的手机号");
+      return;
+    }
+    if (smsEnabled && !code) {
+      setError("请输入验证码");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    
+    try {
+      const recordId = sessionStorage.getItem("assessmentRecordId") || "";
+      const body: Record<string, string> = { phone, recordId };
+      if (smsEnabled) {
+        body.action = 'verify';
+        body.code = code;
+      }
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       
@@ -785,7 +839,7 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
       } else {
         setError(data.error || "注册失败");
       }
-    } catch (err) {
+    } catch {
       setError("网络错误，请重试");
     } finally {
       setLoading(false);
@@ -817,10 +871,34 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
               className="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
             />
           </div>
+
+          {smsEnabled && (
+            <div>
+              <label className="text-xs text-slate-400 mb-1 block">验证码</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  maxLength={6}
+                  placeholder="请输入验证码"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  className="flex-1 px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
+                />
+                <button
+                  onClick={handleSendCode}
+                  disabled={phone.length !== 11 || countdown > 0 || loading}
+                  className="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-slate-200 text-xs rounded-lg transition-all whitespace-nowrap"
+                >
+                  {countdown > 0 ? `${countdown}s` : codeSent ? '重新发送' : '获取验证码'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {error && <p className="text-xs text-red-400">{error}</p>}
           <button
             onClick={handleRegister}
-            disabled={phone.length !== 11 || loading}
+            disabled={phone.length !== 11 || loading || (smsEnabled && !code)}
             className="w-full py-3 bg-blue-500 hover:bg-blue-400 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-medium rounded-lg transition-all"
           >
             {loading ? "注册中..." : "注册并查看报告"}

@@ -11,8 +11,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
-      {/* Header badge */}
+      {/* Logo */}
       <div className="animate-fade-in mb-6">
+        <img src="/logo.svg" alt="睿筑建筑节能评估" className="h-16 w-auto" />
+      </div>
+
+      {/* Header badge */}
+      <div className="animate-fade-in mb-4">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
           GB 50176 / JGJ 26 标准
@@ -21,9 +26,8 @@ export default function HomePage() {
 
       {/* Main title */}
       <h1 className="animate-fade-in text-3xl font-bold text-center mb-3 tracking-tight">
-        <span className="text-slate-100">建筑节能水平</span>
-        <br />
-        <span className="text-blue-400">评估系统</span>
+        <span className="text-slate-100">睿筑</span>
+        <span className="text-blue-400">建筑节能评估</span>
       </h1>
 
       <p className="animate-fade-in text-slate-400 text-sm text-center max-w-xs mb-8 leading-relaxed">

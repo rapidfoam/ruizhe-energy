@@ -8,7 +8,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "建筑节能水平评估系统",
+  title: "睿筑建筑节能评估",
   description: "专业建筑围护结构节能评估，自动计算K值并对比国家标准限值",
 };
 

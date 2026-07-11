@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 196 40">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="8" width="24" height="24" rx="4" fill="url(#g)"/>
+  <path d="M8 14h12v2H8zm0 4h12v2H8zm0 4h8v2H8z" fill="white"/>
+  <text x="34" y="26" font-family="system-ui,-apple-system,sans-serif" font-size="18" font-weight="700" fill="#1e293b">睿筑</text>
+  <text x="78" y="26" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="400" fill="#64748b">建筑节能评估</text>
+</svg>

@@ -130,7 +130,10 @@ export default function ReportPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               重新评估
             </button>
-            <h1 className="text-sm font-medium text-slate-300">评估报告</h1>
+            <div className="flex items-center gap-2">
+              <img src="/logo.svg" alt="睿筑" className="h-6 w-auto" />
+              <h1 className="text-sm font-medium text-slate-300">评估报告</h1>
+            </div>
             <div className="w-16" />
           </div>
           {/* Action buttons */}
@@ -174,7 +177,7 @@ export default function ReportPage() {
       <div ref={reportRef} className="max-w-lg mx-auto px-4 py-4 space-y-4">
         {/* Report Title */}
         <div className="text-center py-4 border-b border-slate-700/50">
-          <h2 className="text-lg font-bold text-slate-100">建筑节能水平评估报告</h2>
+          <h2 className="text-lg font-bold text-slate-100">睿筑建筑节能评估报告</h2>
           <p className="text-xs text-slate-500 mt-1 font-mono">
             {new Date(result.timestamp).toLocaleString("zh-CN")}
           </p>

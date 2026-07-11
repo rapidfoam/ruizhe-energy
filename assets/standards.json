@@ -1,0 +1,304 @@
+{
+  "description": "建筑围护结构热工性能限值表 - 依据GB 55015-2021及各分区标准",
+  "source": "GB 55015-2021 / JGJ 26 / JGJ 134 / GB 50189",
+  "standards": {
+    "residential": {
+      "name": "居住建筑（独栋住宅≤3层）",
+      "limits": {
+        "I_severe_cold": {
+          "sub_zone": "IA",
+          "shape_factor": "≤3层 S≤0.55",
+          "roof": {"K_max": 0.20, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.25, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.25, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 1.80, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 1.50, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 1.20, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 1.00, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 1.80, "unit": "W/(m²·K)"},
+          "ground_R_min": 2.00, "ground_unit": "(m²·K)/W",
+          "basement_wall_R_min": 2.00, "basement_unit": "(m²·K)/W"
+        },
+        "I_severe_cold_B": {
+          "sub_zone": "IB",
+          "shape_factor": "≤3层 S≤0.55",
+          "roof": {"K_max": 0.20, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.30, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.30, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 2.00, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 1.80, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 1.50, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 1.20, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 1.80, "unit": "W/(m²·K)"},
+          "ground_R_min": 1.80, "ground_unit": "(m²·K)/W",
+          "basement_wall_R_min": 2.00, "basement_unit": "(m²·K)/W"
+        },
+        "I_severe_cold_C": {
+          "sub_zone": "IC",
+          "shape_factor": "≤3层 S≤0.57",
+          "roof": {"K_max": 0.25, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.35, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.35, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 2.20, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 2.00, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 1.80, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 1.50, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 1.80, "unit": "W/(m²·K)"},
+          "ground_R_min": 1.60, "ground_unit": "(m²·K)/W",
+          "basement_wall_R_min": 1.80, "basement_unit": "(m²·K)/W"
+        },
+        "II_cold_A": {
+          "sub_zone": "IIA",
+          "shape_factor": "≤3层 S≤0.55",
+          "roof": {"K_max": 0.30, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.35, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.35, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 2.50, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 2.20, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 1.90, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 1.70, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 2.00, "unit": "W/(m²·K)"},
+          "ground_R_min": 1.40, "ground_unit": "(m²·K)/W",
+          "basement_wall_R_min": 1.50, "basement_unit": "(m²·K)/W"
+        },
+        "II_cold_B": {
+          "sub_zone": "IIB",
+          "shape_factor": "≤3层 S≤0.55",
+          "roof": {"K_max": 0.35, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.45, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.45, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 2.80, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 2.50, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 2.20, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 1.90, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 2.00, "unit": "W/(m²·K)"},
+          "ground_R_min": 1.20, "ground_unit": "(m²·K)/W",
+          "basement_wall_R_min": 1.30, "basement_unit": "(m²·K)/W"
+        },
+        "III_hot_summer_cold_winter": {
+          "sub_zone": "III",
+          "shape_factor": "≤3层 S≤0.55",
+          "roof": {"K_max": 0.40, "unit": "W/(m²·K)", "note": "热惰性指标D≤2.5时K≤0.35"},
+          "exterior_wall": {"K_max": 0.50, "unit": "W/(m²·K)", "note": "热惰性指标D≤2.5时K≤0.40"},
+          "overhead_floor": {"K_max": 0.50, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 2.80, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 2.50, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 2.20, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 1.90, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 2.50, "unit": "W/(m²·K)"},
+          "ground_R_min": null, "ground_unit": null, "ground_note": "夏热冬冷地区无强制地面热阻要求，但架空层应保温",
+          "basement_wall_R_min": null
+        },
+        "IV_hot_summer_warm_winter": {
+          "sub_zone": "IV",
+          "shape_factor": "≤3层 S≤0.55",
+          "roof": {"K_max": 0.50, "unit": "W/(m²·K)", "note": "热惰性指标D≤2.5时K≤0.40"},
+          "exterior_wall": {"K_max": 0.80, "unit": "W/(m²·K)", "note": "热惰性指标D≤2.5时K≤0.65"},
+          "overhead_floor": {"K_max": 0.80, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 3.00, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 2.80, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 2.50, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 2.20, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 2.80, "unit": "W/(m²·K)"},
+          "ground_R_min": null, "ground_note": "夏热冬暖地区无强制地面热阻要求"
+        },
+        "V_temperate": {
+          "sub_zone": "V",
+          "shape_factor": "≤3层 S≤0.55",
+          "roof": {"K_max": 0.50, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.80, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.60, "unit": "W/(m²·K)"},
+          "window_wcr_le_025": {"K_max": 3.00, "unit": "W/(m²·K)"},
+          "window_wcr_025_035": {"K_max": 2.80, "unit": "W/(m²·K)"},
+          "window_wcr_035_045": {"K_max": 2.50, "unit": "W/(m²·K)"},
+          "window_wcr_gt_045": {"K_max": 2.20, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 2.80, "unit": "W/(m²·K)"},
+          "ground_R_min": null, "ground_note": "温和地区无强制地面热阻要求"
+        }
+      }
+    },
+    "public_class_A": {
+      "name": "甲类公共建筑（单栋建筑面积>300m²）",
+      "limits_note": "甲类公建需同时满足SHGC要求，此表为简化版",
+      "limits": {
+        "I_severe_cold": {
+          "roof": {"K_max": 0.30, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.40, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.40, "unit": "W/(m²·K)"},
+          "window_wcr_le_020": {"K_max": 2.50, "SHGC_max": null},
+          "window_wcr_020_030": {"K_max": 2.20, "SHGC_max": null},
+          "window_wcr_030_040": {"K_max": 1.90, "SHGC_max": null},
+          "window_wcr_040_050": {"K_max": 1.70, "SHGC_max": null},
+          "window_wcr_050_060": {"K_max": 1.50, "SHGC_max": null},
+          "window_wcr_060_070": {"K_max": 1.40, "SHGC_max": null},
+          "window_wcr_070_080": {"K_max": 1.30, "SHGC_max": null},
+          "roof_skylight": {"K_max": 2.20, "unit": "W/(m²·K)"},
+          "ground_R_min": 1.40, "basement_wall_R_min": 1.50
+        },
+        "II_cold": {
+          "roof": {"K_max": 0.35, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.45, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.45, "unit": "W/(m²·K)"},
+          "window_wcr_le_020": {"K_max": 2.70, "SHGC_max": null},
+          "window_wcr_020_030": {"K_max": 2.50, "SHGC_max": null},
+          "window_wcr_030_040": {"K_max": 2.20, "SHGC_max": null},
+          "window_wcr_040_050": {"K_max": 1.90, "SHGC_max": 0.40},
+          "window_wcr_050_060": {"K_max": 1.70, "SHGC_max": 0.35},
+          "window_wcr_060_070": {"K_max": 1.50, "SHGC_max": 0.35},
+          "roof_skylight": {"K_max": 2.40, "unit": "W/(m²·K)"},
+          "ground_R_min": 0.90, "basement_wall_R_min": 0.90
+        },
+        "III_hot_summer_cold_winter": {
+          "roof": {"K_max": 0.40, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.60, "unit": "W/(m²·K)", "note": "D>2.5; D≤2.5时K≤0.50"},
+          "overhead_floor": {"K_max": 0.70, "unit": "W/(m²·K)"},
+          "window_wcr_le_020": {"K_max": 3.00, "SHGC_max": 0.45},
+          "window_wcr_020_030": {"K_max": 2.60, "SHGC_max": 0.40},
+          "window_wcr_030_040": {"K_max": 2.20, "SHGC_max": 0.35},
+          "window_wcr_040_050": {"K_max": 1.90, "SHGC_max": 0.35},
+          "window_wcr_050_060": {"K_max": 1.70, "SHGC_max": 0.30},
+          "window_wcr_060_070": {"K_max": 1.50, "SHGC_max": 0.30},
+          "roof_skylight": {"K_max": 2.40, "SHGC_max": 0.35},
+          "ground_R_min": null, "basement_wall_R_min": null
+        },
+        "IV_hot_summer_warm_winter": {
+          "roof": {"K_max": 0.50, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.80, "unit": "W/(m²·K)", "note": "D>2.5; D≤2.5时K≤0.65"},
+          "overhead_floor": {"K_max": 0.90, "unit": "W/(m²·K)"},
+          "window_wcr_le_020": {"K_max": 3.50, "SHGC_max": 0.40},
+          "window_wcr_020_030": {"K_max": 3.00, "SHGC_max": 0.35},
+          "window_wcr_030_040": {"K_max": 2.70, "SHGC_max": 0.35},
+          "window_wcr_040_050": {"K_max": 2.40, "SHGC_max": 0.30},
+          "window_wcr_050_060": {"K_max": 2.20, "SHGC_max": 0.25},
+          "window_wcr_060_070": {"K_max": 1.80, "SHGC_max": 0.25},
+          "roof_skylight": {"K_max": 2.70, "SHGC_max": 0.30},
+          "ground_R_min": null, "basement_wall_R_min": null
+        },
+        "V_temperate": {
+          "roof": {"K_max": 0.50, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.80, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.70, "unit": "W/(m²·K)"},
+          "window_wcr_le_020": {"K_max": 3.00, "SHGC_max": 0.45},
+          "window_wcr_020_030": {"K_max": 2.80, "SHGC_max": 0.40},
+          "window_wcr_030_040": {"K_max": 2.50, "SHGC_max": 0.40},
+          "window_wcr_040_050": {"K_max": 2.20, "SHGC_max": 0.35},
+          "roof_skylight": {"K_max": 2.50, "unit": "W/(m²·K)"},
+          "ground_R_min": null, "basement_wall_R_min": null
+        }
+      }
+    },
+    "public_class_B": {
+      "name": "乙类公共建筑（单栋建筑面积≤300m²）",
+      "limits_note": "乙类公建只允许规定性指标法，不允许权衡判断",
+      "limits": {
+        "I_severe_cold": {
+          "roof": {"K_max": 0.45, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.50, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.50, "unit": "W/(m²·K)"},
+          "window_all": {"K_max": 2.80, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 2.50, "unit": "W/(m²·K)"}
+        },
+        "II_cold": {
+          "roof": {"K_max": 0.50, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.55, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.55, "unit": "W/(m²·K)"},
+          "window_all": {"K_max": 3.00, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 2.70, "unit": "W/(m²·K)"}
+        },
+        "III_hot_summer_cold_winter": {
+          "roof": {"K_max": 0.60, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 0.80, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.90, "unit": "W/(m²·K)"},
+          "window_all": {"K_max": 3.50, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 3.00, "unit": "W/(m²·K)"}
+        },
+        "IV_hot_summer_warm_winter": {
+          "roof": {"K_max": 0.70, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 1.00, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 1.00, "unit": "W/(m²·K)"},
+          "window_all": {"K_max": 4.00, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 3.50, "unit": "W/(m²·K)"}
+        },
+        "V_temperate": {
+          "roof": {"K_max": 0.70, "unit": "W/(m²·K)"},
+          "exterior_wall": {"K_max": 1.00, "unit": "W/(m²·K)"},
+          "overhead_floor": {"K_max": 0.90, "unit": "W/(m²·K)"},
+          "window_all": {"K_max": 3.50, "unit": "W/(m²·K)"},
+          "roof_skylight": {"K_max": 3.00, "unit": "W/(m²·K)"}
+        }
+      }
+    },
+    "industrial": {
+      "name": "设供暖空调系统的工业建筑",
+      "limits_note": "依据GB 55015-2021 §3.1.12",
+      "limits": {
+        "I_severe_cold": {
+          "shape_factor_le_010": {
+            "roof": {"K_max": 0.45},
+            "exterior_wall": {"K_max": 0.55},
+            "window_wcr_le_020": {"K_max": 2.70},
+            "window_wcr_020_030": {"K_max": 2.50},
+            "window_wcr_gt_030": {"K_max": 2.20}
+          },
+          "shape_factor_010_015": {
+            "roof": {"K_max": 0.40},
+            "exterior_wall": {"K_max": 0.50},
+            "window_wcr_le_020": {"K_max": 2.50},
+            "window_wcr_020_030": {"K_max": 2.20},
+            "window_wcr_gt_030": {"K_max": 2.00}
+          },
+          "shape_factor_gt_015": {
+            "roof": {"K_max": 0.35},
+            "exterior_wall": {"K_max": 0.45},
+            "window_wcr_le_020": {"K_max": 2.20},
+            "window_wcr_020_030": {"K_max": 2.00},
+            "window_wcr_gt_030": {"K_max": 1.80}
+          }
+        },
+        "II_cold": {
+          "shape_factor_le_010": {
+            "roof": {"K_max": 0.55},
+            "exterior_wall": {"K_max": 0.65},
+            "window_wcr_le_020": {"K_max": 3.00},
+            "window_wcr_020_030": {"K_max": 2.70},
+            "window_wcr_gt_030": {"K_max": 2.50}
+          },
+          "shape_factor_010_015": {
+            "roof": {"K_max": 0.50},
+            "exterior_wall": {"K_max": 0.60},
+            "window_wcr_le_020": {"K_max": 2.70},
+            "window_wcr_020_030": {"K_max": 2.50},
+            "window_wcr_gt_030": {"K_max": 2.20}
+          },
+          "shape_factor_gt_015": {
+            "roof": {"K_max": 0.45},
+            "exterior_wall": {"K_max": 0.50},
+            "window_wcr_le_020": {"K_max": 2.50},
+            "window_wcr_020_030": {"K_max": 2.20},
+            "window_wcr_gt_030": {"K_max": 2.00}
+          }
+        }
+      }
+    }
+  },
+  "shape_factor_limits": {
+    "residential": {
+      "I_severe_cold": {"le_3_floors": 0.55, "ge_4_floors": 0.30},
+      "II_cold": {"le_3_floors": 0.55, "ge_4_floors": 0.35},
+      "III_hot_summer_cold_winter": {"le_3_floors": 0.55, "ge_4_floors": 0.40},
+      "IV_hot_summer_warm_winter": null,
+      "V_temperate": null
+    },
+    "public": {
+      "I_severe_cold": {"le_1_floor": 0.50, "gt_1_floor": 0.40},
+      "II_cold": {"le_1_floor": 0.50, "gt_1_floor": 0.40}
+    }
+  },
+  "window_wall_ratio_limits": {
+    "residential": {
+      "north": 0.35,
+      "east_west": 0.30,
+      "south": 0.45
+    }
+  }
+}

@@ -34,7 +34,8 @@ export const INSULATION_MATERIALS: MaterialLayer[] = [
   { id: "seps_board", name: "石墨聚苯板(SEPS)", lambda: 0.033, lambdaCorrection: 1.15, lambdaCorrected: 0.038, category: "insulation", density: 20, combustionClass: "B1", commonThicknesses: [30,40,50,60,80,100,120], description: "石墨EPS" },
   { id: "xps_board", name: "挤塑聚苯板(XPS)", lambda: 0.030, lambdaCorrection: 1.10, lambdaCorrected: 0.033, category: "insulation", density: 30, combustionClass: "B1/B2", commonThicknesses: [30,40,50,60,80,100], description: "XPS" },
   { id: "pu_board", name: "聚氨酯保温板(PU)", lambda: 0.024, lambdaCorrection: 1.10, lambdaCorrected: 0.026, category: "insulation", density: 35, combustionClass: "B1/B2", commonThicknesses: [30,40,50,60,80,100], description: "硬质聚氨酯" },
-  { id: "pu_spray", name: "喷涂硬泡聚氨酯(PUR)", lambda: 0.024, lambdaCorrection: 1.10, lambdaCorrected: 0.026, category: "insulation", density: 35, combustionClass: "B1/B2", commonThicknesses: [20,30,40,50,60,80], description: "喷涂聚氨酯" },
+  { id: "pu_spray", name: "喷涂硬质聚氨酯(PUR)", lambda: 0.024, lambdaCorrection: 1.10, lambdaCorrected: 0.026, category: "insulation", density: 35, combustionClass: "B1/B2", commonThicknesses: [20,30,40,50,60,80], description: "喷涂聚氨酯硬泡，无缝密封" },
+  { id: "pu_soft_spray", name: "水性软发泡聚氨酯喷涂", lambda: 0.038, lambdaCorrection: 1.15, lambdaCorrected: 0.044, category: "insulation", density: 30, combustionClass: "B1/B2", commonThicknesses: [30,40,50,60,80,100], description: "水性软质发泡聚氨酯，环保型喷涂" },
   { id: "pir_board", name: "聚异氰脲酸酯板(PIR)", lambda: 0.023, lambdaCorrection: 1.10, lambdaCorrected: 0.025, category: "insulation", density: 40, combustionClass: "B1", commonThicknesses: [30,40,50,60,80,100], description: "PIR" },
   { id: "rock_wool_board", name: "岩棉板", lambda: 0.040, lambdaCorrection: 1.20, lambdaCorrected: 0.048, category: "insulation", density: 80, combustionClass: "A", commonThicknesses: [40,50,60,80,100,120], description: "A级防火" },
   { id: "glass_wool_board", name: "玻璃棉板", lambda: 0.040, lambdaCorrection: 1.20, lambdaCorrected: 0.048, category: "insulation", density: 48, combustionClass: "A", commonThicknesses: [40,50,60,80,100], description: "A级防火" },
@@ -92,6 +93,8 @@ export const ROOF_INSULATION_MATERIALS: MaterialLayer[] = [
   { id: "roof_pu_50", name: "聚氨酯板 50mm", lambda: 0.024, lambdaCorrection: 1.15, lambdaCorrected: 0.028, category: "insulation", description: "屋面专用" },
   { id: "roof_pu_60", name: "聚氨酯板 60mm", lambda: 0.024, lambdaCorrection: 1.15, lambdaCorrected: 0.028, category: "insulation", description: "屋面专用" },
   { id: "roof_pu_80", name: "聚氨酯板 80mm", lambda: 0.024, lambdaCorrection: 1.15, lambdaCorrected: 0.028, category: "insulation", description: "屋面专用" },
+  { id: "roof_pu_spray", name: "喷涂硬质聚氨酯(PUR)", lambda: 0.024, lambdaCorrection: 1.10, lambdaCorrected: 0.026, category: "insulation", commonThicknesses: [30,40,50,60,80,100], description: "屋面喷涂硬泡聚氨酯，无缝密封" },
+  { id: "roof_pu_soft_spray", name: "水性软发泡聚氨酯喷涂", lambda: 0.038, lambdaCorrection: 1.15, lambdaCorrected: 0.044, category: "insulation", commonThicknesses: [30,40,50,60,80,100], description: "屋面水性软质发泡聚氨酯，环保型喷涂" },
   { id: "roof_none", name: "无保温层", lambda: 0, lambdaCorrection: 1.0, lambdaCorrected: 0, category: "insulation", description: "不设保温" },
 ];
 
@@ -120,7 +123,8 @@ export const WINDOW_CONFIGS: WindowConfig[] = [
 
 // 厚度选择器辅助函数 - 根据保温材料ID获取可选厚度
 export function getInsulationThicknesses(materialId: string): number[] {
-  const mat = INSULATION_MATERIALS.find((m) => m.id === materialId);
+  const mat = INSULATION_MATERIALS.find((m) => m.id === materialId)
+    || ROOF_INSULATION_MATERIALS.find((m) => m.id === materialId);
   return mat?.commonThicknesses || [30, 40, 50, 60, 80, 100];
 }
 

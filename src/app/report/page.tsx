@@ -124,20 +124,49 @@ export default function ReportPage() {
 
       {/* Header */}
       <header className="sticky top-0 z-10 bg-[#0f172a]/95 backdrop-blur-sm border-b border-slate-700/50">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={() => router.push("/form")} className="text-slate-400 hover:text-slate-200 text-sm flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            重新评估
-          </button>
-          <h1 className="text-sm font-medium text-slate-300">评估报告</h1>
-          <button onClick={handleExport} disabled={exporting} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 disabled:opacity-50">
-            {exporting ? (
-              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-            ) : (
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <button onClick={() => router.push("/form")} className="text-slate-400 hover:text-slate-200 text-sm flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              重新评估
+            </button>
+            <h1 className="text-sm font-medium text-slate-300">评估报告</h1>
+            <div className="w-16" />
+          </div>
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (!authenticated) {
+                  setShowAuth(true);
+                  return;
+                }
+                handleExport();
+              }}
+              disabled={exporting}
+              className="flex-1 py-2 px-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+              {exporting ? "导出中..." : "保存报告"}
+            </button>
+            <button
+              onClick={() => {
+                if (!authenticated) {
+                  setShowAuth(true);
+                  return;
+                }
+                handleExport();
+              }}
+              disabled={exporting}
+              className="flex-1 py-2 px-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 text-slate-300 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
+            >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            )}
-            {exporting ? "导出中" : "导出长图"}
-          </button>
+              下载长图
+            </button>
+          </div>
+          {!authenticated && (
+            <p className="text-[10px] text-slate-500 text-center mt-1.5">注册后可保存和下载报告</p>
+          )}
         </div>
       </header>
 
@@ -221,6 +250,9 @@ export default function ReportPage() {
             </table>
           </div>
         </section>
+
+        {/* Calculation Basis - Collapsible */}
+        <CalculationBasis />
 
         {/* Construction Layers */}
         <section className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50">
@@ -436,6 +468,118 @@ function AnalysisItem({ title, detail }: { title: string; detail: string }) {
   );
 }
 
+/* ========== Calculation Basis Component ========== */
+
+function CalculationBasis() {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <section className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between"
+      >
+        <h3 className="text-sm font-bold text-slate-300 flex items-center gap-2">
+          <span className="w-1 h-4 bg-blue-500 rounded-full" />
+          计算依据与方法
+        </h3>
+        <svg
+          className={`w-4 h-4 text-slate-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="mt-4 space-y-4 text-xs text-slate-400 leading-relaxed">
+          {/* Standards */}
+          <div>
+            <h4 className="text-xs font-bold text-slate-300 mb-2">计算依据</h4>
+            <ol className="list-decimal list-inside space-y-1 pl-1">
+              <li>民用建筑热工设计规范 <span className="text-blue-400">GB 50176-2016</span></li>
+              <li>公共建筑节能设计标准 <span className="text-blue-400">GB 50189-2015</span></li>
+              <li>严寒和寒冷地区居住建筑节能设计标准 <span className="text-blue-400">JGJ 26-2010</span></li>
+              <li>夏热冬冷地区居住建筑节能设计标准 <span className="text-blue-400">JGJ 134-2010</span></li>
+              <li>夏热冬暖地区居住建筑节能设计标准 <span className="text-blue-400">JGJ 75-2012</span></li>
+            </ol>
+          </div>
+
+          {/* Method */}
+          <div>
+            <h4 className="text-xs font-bold text-slate-300 mb-2">计算方法</h4>
+            <p className="mb-2">
+              本评估采用<span className="text-slate-200">规定性指标法</span>，通过计算建筑围护结构各部位的传热系数K值，与相应气候分区和建筑类型的标准限值进行对比，判定节能达标情况。
+            </p>
+            <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700/30 font-mono text-[11px]">
+              <p className="text-slate-200 mb-1">传热系数计算公式：</p>
+              <p className="text-blue-400">K = 1 / R₀</p>
+              <p className="text-slate-300 mt-1">其中：R₀ = R<sub>i</sub> + Σ(d<sub>i</sub>/λ<sub>i</sub>) + R<sub>e</sub></p>
+            </div>
+            <div className="mt-2 space-y-1 pl-2">
+              <p>• R₀：围护结构总热阻 (m²·K/W)</p>
+              <p>• R<sub>i</sub>：内表面换热阻，取 <span className="text-slate-200">0.13</span> m²·K/W（GB 50176-2016 表3.1.2-1）</p>
+              <p>• R<sub>e</sub>：外表面换热阻，取 <span className="text-slate-200">0.04</span> m²·K/W（GB 50176-2016 表3.1.2-2）</p>
+              <p>• d<sub>i</sub>：各层材料厚度 (m)</p>
+              <p>• λ<sub>i</sub>：各层材料导热系数 [W/(m·K)]</p>
+            </div>
+          </div>
+
+          {/* Construction layers */}
+          <div>
+            <h4 className="text-xs font-bold text-slate-300 mb-2">计算层次</h4>
+            <div className="space-y-2">
+              <div className="p-2 bg-slate-900/30 rounded border border-slate-700/20">
+                <p className="text-slate-300 font-medium mb-1">外墙（由外到内）：</p>
+                <p className="text-[11px] text-slate-400">
+                  外抹灰层（水泥砂浆 20mm, λ=0.93）→ 外墙基层 → 保温层 → 内抹灰层（水泥砂浆 20mm, λ=0.93）
+                </p>
+              </div>
+              <div className="p-2 bg-slate-900/30 rounded border border-slate-700/20">
+                <p className="text-slate-300 font-medium mb-1">屋面（由外到内）：</p>
+                <p className="text-[11px] text-slate-400">
+                  外抹灰层（水泥砂浆 20mm, λ=0.93）→ 保温层 → 屋面板基层 → 内抹灰层（水泥砂浆 20mm, λ=0.93）
+                </p>
+              </div>
+              <div className="p-2 bg-slate-900/30 rounded border border-slate-700/20">
+                <p className="text-slate-300 font-medium mb-1">外窗：</p>
+                <p className="text-[11px] text-slate-400">
+                  直接采用国标 GB 50176-2016 附录E 查表值
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Rating explanation */}
+          <div>
+            <h4 className="text-xs font-bold text-slate-300 mb-2">评级说明</h4>
+            <div className="grid grid-cols-5 gap-1">
+              {[
+                { grade: "A", range: "90-100", desc: "优秀", color: "text-emerald-400 bg-emerald-500/10" },
+                { grade: "B", range: "75-89", desc: "良好", color: "text-blue-400 bg-blue-500/10" },
+                { grade: "C", range: "60-74", desc: "一般", color: "text-amber-400 bg-amber-500/10" },
+                { grade: "D", range: "40-59", desc: "较差", color: "text-orange-400 bg-orange-500/10" },
+                { grade: "E", range: "0-39", desc: "不合格", color: "text-red-400 bg-red-500/10" },
+              ].map((item) => (
+                <div key={item.grade} className={`p-1.5 rounded text-center ${item.color}`}>
+                  <p className="text-sm font-bold">{item.grade}</p>
+                  <p className="text-[9px]">{item.range}分</p>
+                  <p className="text-[9px]">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-slate-500">
+              评分逻辑：对每个围护结构部位，K值与标准限值的比值越小得分越高；综合评级取三个部位得分的加权平均值。
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ========== Auth Modal ========== */
 
 function AuthModal({ onSuccess }: { onSuccess: () => void }) {
@@ -539,10 +683,10 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
             onClick={onSuccess}
             className="w-full py-3.5 text-base font-medium text-white bg-slate-600 hover:bg-slate-500 border border-slate-500/50 rounded-xl transition-all active:scale-[0.98] shadow-lg"
           >
-            跳过注册，直接查看报告
+            跳过注册，预览报告
           </button>
           <p className="text-[10px] text-slate-500 text-center mt-2">
-            无需手机号，直接进入评估报告
+            预览模式可查看报告，注册后可保存和下载
           </p>
         </div>
       </div>

@@ -12,8 +12,8 @@ export default function ReportPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData | null>(null);
   const [result, setResult] = useState<EvaluationResult | null>(null);
-  const [showAuth, setShowAuth] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showConsult, setShowConsult] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -42,8 +42,10 @@ export default function ReportPage() {
       // Check if already authenticated
       const authed = sessionStorage.getItem("userAuthenticated");
       if (authed === "true") {
-        setAuthenticated(true);
-        setShowAuth(false);
+        setIsRegistered(true);
+      } else {
+        // Show auth modal on first load if not registered
+        setShowAuthModal(true);
       }
     } catch (err) {
       setDebugInfo(`Error reading sessionStorage: ${err}`);
@@ -116,6 +118,19 @@ export default function ReportPage() {
     });
   }, [formData, result]);
 
+  // 检查是否需要注册，未注册则弹出弹窗
+  const requireAuth = useCallback((callback: () => void) => {
+    // 实时检查 sessionStorage，避免状态不同步
+    const authed = sessionStorage.getItem("userAuthenticated");
+    if (authed === "true") {
+      setIsRegistered(true);
+      callback();
+    } else {
+      setIsRegistered(false);
+      setShowAuthModal(true);
+    }
+  }, []);
+
   const handleExport = useCallback(async () => {
     if (!reportRef.current) return;
     setExporting(true);
@@ -185,10 +200,10 @@ export default function ReportPage() {
   return (
     <div className="min-h-screen pb-20">
       {/* Auth Modal */}
-      {showAuth && !authenticated && (
+      {showAuthModal && !isRegistered && (
         <AuthModal
-          onSuccess={() => { setAuthenticated(true); setShowAuth(false); sessionStorage.setItem("userAuthenticated", "true"); }}
-          onSkip={() => { setShowAuth(false); }}
+          onSuccess={() => { setIsRegistered(true); setShowAuthModal(false); sessionStorage.setItem("userAuthenticated", "true"); }}
+          onSkip={() => { setShowAuthModal(false); }}
         />
       )}
 
@@ -214,13 +229,7 @@ export default function ReportPage() {
           {/* Action buttons */}
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                if (!authenticated) {
-                  setShowAuth(true);
-                  return;
-                }
-                handleExport();
-              }}
+              onClick={() => requireAuth(() => handleExport())}
               disabled={exporting}
               className="flex-1 py-2 px-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
             >
@@ -228,13 +237,7 @@ export default function ReportPage() {
               {exporting ? "导出中..." : "保存报告"}
             </button>
             <button
-              onClick={() => {
-                if (!authenticated) {
-                  setShowAuth(true);
-                  return;
-                }
-                handleExport();
-              }}
+              onClick={() => requireAuth(() => handleExport())}
               disabled={exporting}
               className="flex-1 py-2 px-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 text-slate-300 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
             >
@@ -249,7 +252,7 @@ export default function ReportPage() {
               详细咨询
             </button>
           </div>
-          {!authenticated && (
+          {!isRegistered && (
             <p className="text-[10px] text-slate-500 text-center mt-1.5">注册后可保存和下载报告</p>
           )}
         </div>

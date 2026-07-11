@@ -95,7 +95,7 @@ export default function ReportPage() {
       heat_loss_ventilation: result.heatLoss?.infiltration,
     };
     
-    // Save to server
+    // Save to server (Feishu Bitable)
     fetch('/api/assessments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -105,7 +105,10 @@ export default function ReportPage() {
     .then(data => {
       if (data.success) {
         sessionStorage.setItem("assessmentSaved", "true");
-        console.log('Assessment saved:', data.id);
+        if (data.recordId) {
+          sessionStorage.setItem("assessmentRecordId", data.recordId);
+        }
+        console.log('Assessment saved:', data.recordId);
       }
     })
     .catch(err => {
@@ -754,14 +757,10 @@ function ConsultModal({ onClose }: { onClose: () => void }) {
 
 function AuthModal({ onSuccess }: { onSuccess: () => void }) {
   const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
-  const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [devCode, setDevCode] = useState(""); // For development mode
 
-  const handleSendCode = async () => {
+  const handleRegister = async () => {
     if (!/^1[3-9]\d{9}$/.test(phone)) {
       setError("请输入正确的手机号");
       return;
@@ -770,50 +769,12 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     
     try {
-      const res = await fetch('/api/sms/send', {
+      // 调用注册 API 更新飞书记录的手机号
+      const recordId = sessionStorage.getItem("assessmentRecordId") || "";
+      const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        setSent(true);
-        setCountdown(60);
-        // In development mode, show the code for testing
-        if (data.code) {
-          setDevCode(data.code);
-        }
-        const timer = setInterval(() => {
-          setCountdown((c) => {
-            if (c <= 1) { clearInterval(timer); return 0; }
-            return c - 1;
-          });
-        }, 1000);
-      } else {
-        setError(data.error || "发送失败，请重试");
-      }
-    } catch (err) {
-      setError("网络错误，请重试");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = async () => {
-    if (code.length !== 6) {
-      setError("请输入6位验证码");
-      return;
-    }
-    setError("");
-    setLoading(true);
-    
-    try {
-      const sessionId = sessionStorage.getItem("sessionId") || "";
-      const res = await fetch('/api/sms/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code, sessionId }),
+        body: JSON.stringify({ phone, recordId }),
       });
       const data = await res.json();
       
@@ -822,7 +783,7 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
         sessionStorage.setItem("userPhone", phone);
         onSuccess();
       } else {
-        setError(data.error || "验证码错误");
+        setError(data.error || "注册失败");
       }
     } catch (err) {
       setError("网络错误，请重试");
@@ -856,38 +817,13 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
               className="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
             />
           </div>
-          <div>
-            <label className="text-xs text-slate-400 mb-1 block">验证码</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                maxLength={6}
-                placeholder="6位验证码"
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                className="flex-1 px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
-              />
-              <button
-                onClick={handleSendCode}
-                disabled={countdown > 0 || phone.length !== 11}
-                className="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:hover:bg-slate-700 text-xs text-slate-300 rounded-lg whitespace-nowrap transition-colors"
-              >
-                {countdown > 0 ? `${countdown}s` : sent ? "重新发送" : "获取验证码"}
-              </button>
-            </div>
-          </div>
           {error && <p className="text-xs text-red-400">{error}</p>}
-          {devCode && (
-            <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
-              开发模式验证码: <span className="font-mono font-bold">{devCode}</span>
-            </p>
-          )}
           <button
-            onClick={handleVerify}
-            disabled={!sent || code.length !== 6 || loading}
+            onClick={handleRegister}
+            disabled={phone.length !== 11 || loading}
             className="w-full py-3 bg-blue-500 hover:bg-blue-400 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-medium rounded-lg transition-all"
           >
-            {loading ? "验证中..." : "验证并查看报告"}
+            {loading ? "注册中..." : "注册并查看报告"}
           </button>
         </div>
         <p className="text-[10px] text-slate-600 text-center mt-4">

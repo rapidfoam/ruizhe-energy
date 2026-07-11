@@ -186,7 +186,10 @@ export default function ReportPage() {
     <div className="min-h-screen pb-20">
       {/* Auth Modal */}
       {showAuth && !authenticated && (
-        <AuthModal onSuccess={() => { setAuthenticated(true); setShowAuth(false); sessionStorage.setItem("userAuthenticated", "true"); }} />
+        <AuthModal
+          onSuccess={() => { setAuthenticated(true); setShowAuth(false); sessionStorage.setItem("userAuthenticated", "true"); }}
+          onSkip={() => { setShowAuth(false); }}
+        />
       )}
 
       {/* Consult Modal */}
@@ -755,7 +758,7 @@ function ConsultModal({ onClose }: { onClose: () => void }) {
 
 /* ========== Auth Modal ========== */
 
-function AuthModal({ onSuccess }: { onSuccess: () => void }) {
+function AuthModal({ onSuccess, onSkip }: { onSuccess: () => void; onSkip: () => void }) {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -916,7 +919,7 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
             <div className="flex-1 h-px bg-slate-700/50"></div>
           </div>
           <button
-            onClick={onSuccess}
+            onClick={onSkip}
             className="w-full py-3.5 text-base font-medium text-white bg-slate-600 hover:bg-slate-500 border border-slate-500/50 rounded-xl transition-all active:scale-[0.98] shadow-lg"
           >
             跳过注册，预览报告

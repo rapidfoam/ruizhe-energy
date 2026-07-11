@@ -15,6 +15,7 @@ export default function ReportPage() {
   const [showAuth, setShowAuth] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showConsult, setShowConsult] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
   const [debugInfo, setDebugInfo] = useState<string>("");
@@ -122,6 +123,11 @@ export default function ReportPage() {
         <AuthModal onSuccess={() => { setAuthenticated(true); setShowAuth(false); sessionStorage.setItem("userAuthenticated", "true"); }} />
       )}
 
+      {/* Consult Modal */}
+      {showConsult && (
+        <ConsultModal onClose={() => setShowConsult(false)} />
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-10 bg-[#0f172a]/95 backdrop-blur-sm border-b border-slate-700/50">
         <div className="max-w-lg mx-auto px-4 py-3">
@@ -165,6 +171,13 @@ export default function ReportPage() {
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               下载长图
+            </button>
+            <button
+              onClick={() => setShowConsult(true)}
+              className="flex-1 py-2 px-3 bg-[#07C160]/15 hover:bg-[#07C160]/25 border border-[#07C160]/40 text-[#07C160] text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-7.062-6.122zM14.54 13.21c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/></svg>
+              详细咨询
             </button>
           </div>
           {!authenticated && (
@@ -306,6 +319,18 @@ export default function ReportPage() {
             )}
           </div>
         </section>
+
+        {/* Secondary Consult CTA */}
+        <div className="text-center py-4">
+          <p className="text-xs text-slate-500 mb-3">需要专业保温方案咨询？</p>
+          <button
+            onClick={() => setShowConsult(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#07C160]/10 hover:bg-[#07C160]/20 border border-[#07C160]/30 text-[#07C160] text-sm font-medium rounded-full transition-colors"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-7.062-6.122zM14.54 13.21c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/></svg>
+            联系专业顾问
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="text-center py-4 border-t border-slate-700/50">
@@ -582,6 +607,83 @@ function CalculationBasis() {
         </div>
       )}
     </section>
+  );
+}
+
+/* ========== Consult Modal ========== */
+
+function ConsultModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-slate-800 rounded-t-2xl sm:rounded-2xl border border-slate-700/50 p-6 z-10 max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-slate-100">专业保温顾问</h3>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Subtitle */}
+        <p className="text-sm text-slate-400 text-center mb-6">
+          免费为您解答保温方案问题
+        </p>
+
+        {/* QR Code */}
+        <div className="flex justify-center mb-6">
+          <div className="p-4 bg-white rounded-xl">
+            <img
+              src="/wechat-qr.png"
+              alt="微信二维码"
+              className="w-[200px] h-[200px] object-contain"
+            />
+          </div>
+        </div>
+
+        {/* Instructions */}
+        <div className="text-center space-y-2 mb-6">
+          <p className="text-sm text-slate-300 font-medium">
+            扫码添加微信，获取专业保温方案咨询
+          </p>
+          <p className="text-xs text-slate-500">
+            我们的专业顾问将为您提供一对一服务
+          </p>
+        </div>
+
+        {/* Benefits */}
+        <div className="bg-slate-900/30 rounded-lg p-4 mb-6">
+          <p className="text-xs text-slate-400 mb-2 font-medium">咨询可获得：</p>
+          <ul className="space-y-1.5">
+            <li className="flex items-center gap-2 text-xs text-slate-300">
+              <svg className="w-4 h-4 text-[#07C160]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+              个性化保温方案建议
+            </li>
+            <li className="flex items-center gap-2 text-xs text-slate-300">
+              <svg className="w-4 h-4 text-[#07C160]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+              材料选型与厚度推荐
+            </li>
+            <li className="flex items-center gap-2 text-xs text-slate-300">
+              <svg className="w-4 h-4 text-[#07C160]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+              节能改造成本估算
+            </li>
+          </ul>
+        </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="w-full py-3 text-sm text-slate-400 hover:text-slate-200 bg-slate-700/30 hover:bg-slate-700/50 rounded-lg transition-colors"
+        >
+          关闭
+        </button>
+      </div>
+    </div>
   );
 }
 

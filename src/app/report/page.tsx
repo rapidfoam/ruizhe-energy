@@ -523,7 +523,9 @@ function CalculationBasis() {
             </div>
             <div className="mt-2 space-y-1 pl-2">
               <p>• R₀：围护结构总热阻 (m²·K/W)</p>
-              <p>• R<sub>i</sub>：内表面换热阻，取 <span className="text-slate-200">0.13</span> m²·K/W（GB 50176-2016 表3.1.2-1）</p>
+              <p>• R<sub>i</sub>：内表面换热阻（GB 50176-2016 表3.1.2-1）</p>
+              <p className="pl-4 text-slate-400">- 墙面：<span className="text-slate-200">0.11</span> m²·K/W（热流向下或水平）</p>
+              <p className="pl-4 text-slate-400">- 屋面：<span className="text-slate-200">0.13</span> m²·K/W（热流向上）</p>
               <p>• R<sub>e</sub>：外表面换热阻，取 <span className="text-slate-200">0.04</span> m²·K/W（GB 50176-2016 表3.1.2-2）</p>
               <p>• d<sub>i</sub>：各层材料厚度 (m)</p>
               <p>• λ<sub>i</sub>：各层材料导热系数 [W/(m·K)]</p>

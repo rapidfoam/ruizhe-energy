@@ -1,13 +1,16 @@
 // K值计算引擎 - 依据GB 50176-2016
 // 公式: K = 1 / (Ri + Σ(δn / (λn × an)) + Re)
-// Ri = 0.11 (内表面换热阻)
-// Re = 0.04 (外表面换热阻)
+// 依据 GB 50176-2016 表3.1.2-1 和 表3.1.2-2
 
 import type { MaterialLayer } from "../data/materials";
 import { getWallBaseThickness, getRoofBaseThickness } from "../data/materials";
 
-const RI = 0.11; // 内表面换热阻 (m²·K)/W
-const RE = 0.04; // 外表面换热阻 (m²·K)/W
+// 内表面换热阻 Ri (m²·K)/W - GB 50176-2016 表3.1.2-1
+const RI_WALL = 0.11; // 墙面、地面（热流向下或水平）
+const RI_ROOF = 0.13; // 屋面（热流向上）
+
+// 外表面换热阻 Re (m²·K)/W - GB 50176-2016 表3.1.2-2
+const RE = 0.04; // 外表面（冬季工况）
 
 export interface LayerCalculation {
   materialId: string;
@@ -39,7 +42,7 @@ export interface RoofAssemblyInput {
   insulationThickness: number; // mm
 }
 
-function calcK(layers: { material: MaterialLayer; thickness: number }[]): KValueResult {
+function calcK(layers: { material: MaterialLayer; thickness: number }[], ri: number): KValueResult {
   const calcs: LayerCalculation[] = layers.map(({ material, thickness }) => {
     const thicknessM = thickness / 1000;
     const lambdaC = material.lambdaCorrected || material.lambda * material.lambdaCorrection;
@@ -55,10 +58,10 @@ function calcK(layers: { material: MaterialLayer; thickness: number }[]): KValue
     };
   });
 
-  const totalResistance = RI + calcs.reduce((s, l) => s + l.resistance, 0) + RE;
+  const totalResistance = ri + calcs.reduce((s, l) => s + l.resistance, 0) + RE;
   const kValue = totalResistance > 0 ? Math.round((1 / totalResistance) * 10000) / 10000 : 999;
 
-  return { layers: calcs, totalResistance: Math.round(totalResistance * 10000) / 10000, kValue, ri: RI, re: RE };
+  return { layers: calcs, totalResistance: Math.round(totalResistance * 10000) / 10000, kValue, ri, re: RE };
 }
 
 // 水泥砂浆抹灰层 (内外各20mm, λ=0.93 W/(m·K))
@@ -92,7 +95,8 @@ export function calculateWallK(input: WallAssemblyInput): KValueResult {
   // 内层水泥砂浆抹灰 (20mm)
   layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
   
-  return calcK(layers);
+  // 墙面内表面换热阻 Ri = 0.11 (GB 50176-2016 表3.1.2-1)
+  return calcK(layers, RI_WALL);
 }
 
 export function calculateRoofK(input: RoofAssemblyInput): KValueResult {
@@ -113,7 +117,8 @@ export function calculateRoofK(input: RoofAssemblyInput): KValueResult {
   // 内层水泥砂浆抹灰 (20mm)
   layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
   
-  return calcK(layers);
+  // 屋面内表面换热阻 Ri = 0.13 (GB 50176-2016 表3.1.2-1，热流向上)
+  return calcK(layers, RI_ROOF);
 }
 
 // 热损失分布估算

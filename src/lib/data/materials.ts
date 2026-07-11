@@ -132,6 +132,15 @@ export function getWallBaseThickness(materialId: string): number {
 
 // 获取屋面基层的默认厚度
 export function getRoofBaseThickness(materialId: string): number {
+  // 特殊处理：瓦屋面（含挂瓦条）等效厚度约30mm
+  if (materialId === "clay_tile_roof" || materialId === "cement_tile_roof") {
+    return 30;
+  }
+  // 特殊处理：金属屋面板（按檩条间距折算，等效厚度约50mm）
+  if (materialId === "metal_roof_5") {
+    return 50;
+  }
+  // 其他材料从ID中提取厚度
   const match = materialId.match(/_(\d+)$/);
   return match ? parseInt(match[1]) : 120;
 }

@@ -50,6 +50,69 @@ export default function ReportPage() {
     }
   }, []);
 
+  // Save assessment record when data is loaded
+  useEffect(() => {
+    if (!formData || !result) return;
+    
+    // Check if already saved in this session
+    const saved = sessionStorage.getItem("assessmentSaved");
+    if (saved === "true") return;
+    
+    // Generate session ID if not exists
+    let sessionId = sessionStorage.getItem("sessionId");
+    if (!sessionId) {
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      sessionStorage.setItem("sessionId", sessionId);
+    }
+    
+    // Prepare assessment data
+    const assessmentData = {
+      session_id: sessionId,
+      city: formData.city,
+      climate_zone: formData.climateZone,
+      building_type: formData.buildingType,
+      wall_base_material: formData.wallBase,
+      wall_insulation_material: formData.wallInsulation,
+      wall_insulation_thickness: formData.wallInsulationThickness,
+      wall_k_value: result.wallK,
+      wall_standard_limit: result.wallLimit,
+      wall_compliant: result.wallPass,
+      roof_base_material: formData.roofBase,
+      roof_insulation_material: formData.roofInsulation,
+      roof_insulation_thickness: formData.roofInsulationThickness,
+      roof_k_value: result.roofK,
+      roof_standard_limit: result.roofLimit,
+      roof_compliant: result.roofPass,
+      window_type: formData.windowConfig,
+      window_k_value: result.windowK,
+      window_standard_limit: result.windowLimit,
+      window_compliant: result.windowPass,
+      overall_rating: result.rating,
+      overall_score: result.score,
+      heat_loss_wall: result.heatLoss?.wall,
+      heat_loss_roof: result.heatLoss?.roof,
+      heat_loss_window: result.heatLoss?.window,
+      heat_loss_ventilation: result.heatLoss?.infiltration,
+    };
+    
+    // Save to server
+    fetch('/api/assessments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(assessmentData),
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        sessionStorage.setItem("assessmentSaved", "true");
+        console.log('Assessment saved:', data.id);
+      }
+    })
+    .catch(err => {
+      console.error('Failed to save assessment:', err);
+    });
+  }, [formData, result]);
+
   const handleExport = useCallback(async () => {
     if (!reportRef.current) return;
     setExporting(true);
@@ -695,30 +758,77 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
   const [sent, setSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [devCode, setDevCode] = useState(""); // For development mode
 
-  const handleSendCode = () => {
-    if (!/^1\d{10}$/.test(phone)) {
+  const handleSendCode = async () => {
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
       setError("请输入正确的手机号");
       return;
     }
     setError("");
-    setSent(true);
-    setCountdown(60);
-    const timer = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) { clearInterval(timer); return 0; }
-        return c - 1;
+    setLoading(true);
+    
+    try {
+      const res = await fetch('/api/sms/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
       });
-    }, 1000);
+      const data = await res.json();
+      
+      if (data.success) {
+        setSent(true);
+        setCountdown(60);
+        // In development mode, show the code for testing
+        if (data.code) {
+          setDevCode(data.code);
+        }
+        const timer = setInterval(() => {
+          setCountdown((c) => {
+            if (c <= 1) { clearInterval(timer); return 0; }
+            return c - 1;
+          });
+        }, 1000);
+      } else {
+        setError(data.error || "发送失败，请重试");
+      }
+    } catch (err) {
+      setError("网络错误，请重试");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (code.length !== 6) {
       setError("请输入6位验证码");
       return;
     }
-    // Simulate verification (in production, this would call an API)
-    onSuccess();
+    setError("");
+    setLoading(true);
+    
+    try {
+      const sessionId = sessionStorage.getItem("sessionId") || "";
+      const res = await fetch('/api/sms/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code, sessionId }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        sessionStorage.setItem("userAuthenticated", "true");
+        sessionStorage.setItem("userPhone", phone);
+        onSuccess();
+      } else {
+        setError(data.error || "验证码错误");
+      }
+    } catch (err) {
+      setError("网络错误，请重试");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -767,12 +877,17 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </div>
           {error && <p className="text-xs text-red-400">{error}</p>}
+          {devCode && (
+            <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+              开发模式验证码: <span className="font-mono font-bold">{devCode}</span>
+            </p>
+          )}
           <button
             onClick={handleVerify}
-            disabled={!sent || code.length !== 6}
+            disabled={!sent || code.length !== 6 || loading}
             className="w-full py-3 bg-blue-500 hover:bg-blue-400 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-medium rounded-lg transition-all"
           >
-            验证并查看报告
+            {loading ? "验证中..." : "验证并查看报告"}
           </button>
         </div>
         <p className="text-[10px] text-slate-600 text-center mt-4">

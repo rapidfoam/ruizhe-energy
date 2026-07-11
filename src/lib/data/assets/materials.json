@@ -1,0 +1,145 @@
+{
+  "description": "常用建筑材料热工参数库 - 依据GB 50176-2016民用建筑热工设计规范",
+  "source": "GB 50176-2016 附录B",
+  "surface_heat_transfer_resistance": {
+    "interior_Ri": 0.11,
+    "exterior_Re": 0.04,
+    "unit": "(m²·K)/W"
+  },
+  "wall_materials": [
+    {"id": "solid_brick_240", "name": "实心黏土砖墙", "thickness_default": 240, "thickness_unit": "mm", "lambda": 0.81, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 1800, "density_unit": "kg/m³", "specific_heat": 1.05, "category": "砖砌体"},
+    {"id": "solid_brick_370", "name": "实心黏土砖墙", "thickness_default": 370, "thickness_unit": "mm", "lambda": 0.81, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 1800, "density_unit": "kg/m³", "specific_heat": 1.05, "category": "砖砌体"},
+    {"id": "porous_brick_240", "name": "多孔砖墙(KP1型)", "thickness_default": 240, "thickness_unit": "mm", "lambda": 0.58, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 1400, "density_unit": "kg/m³", "specific_heat": 1.05, "category": "砖砌体"},
+    {"id": "aerated_concrete_block_200", "name": "加气混凝土砌块墙", "thickness_default": 200, "thickness_unit": "mm", "lambda": 0.19, "lambda_unit": "W/(m·K)", "correction_a": 1.25, "density": 600, "density_unit": "kg/m³", "specific_heat": 1.05, "category": "砌块"},
+    {"id": "aerated_concrete_block_250", "name": "加气混凝土砌块墙", "thickness_default": 250, "thickness_unit": "mm", "lambda": 0.19, "lambda_unit": "W/(m·K)", "correction_a": 1.25, "density": 600, "density_unit": "kg/m³", "specific_heat": 1.05, "category": "砌块"},
+    {"id": "aerated_concrete_block_300", "name": "加气混凝土砌块墙", "thickness_default": 300, "thickness_unit": "mm", "lambda": 0.19, "lambda_unit": "W/(m·K)", "correction_a": 1.25, "density": 600, "density_unit": "kg/m³", "specific_heat": 1.05, "category": "砌块"},
+    {"id": "concrete_shear_wall_200", "name": "钢筋混凝土剪力墙", "thickness_default": 200, "thickness_unit": "mm", "lambda": 1.74, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 2500, "density_unit": "kg/m³", "specific_heat": 0.92, "category": "混凝土"},
+    {"id": "concrete_shear_wall_250", "name": "钢筋混凝土剪力墙", "thickness_default": 250, "thickness_unit": "mm", "lambda": 1.74, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 2500, "density_unit": "kg/m³", "specific_heat": 0.92, "category": "混凝土"},
+    {"id": "hollow_concrete_block_190", "name": "混凝土空心砌块墙", "thickness_default": 190, "thickness_unit": "mm", "lambda": 0.80, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 1500, "density_unit": "kg/m³", "specific_heat": 0.92, "category": "砌块"}
+  ],
+  "insulation_materials": [
+    {"id": "eps_board", "name": "模塑聚苯板(EPS)", "lambda": 0.041, "lambda_unit": "W/(m·K)", "correction_a": 1.15, "lambda_corrected": 0.047, "density": 20, "density_unit": "kg/m³", "common_thicknesses": [30, 40, 50, 60, 80, 100, 120], "category": "有机保温", "combustion_class": "B1/B2"},
+    {"id": "seps_board", "name": "石墨聚苯板(SEPS/石墨EPS)", "lambda": 0.033, "lambda_unit": "W/(m·K)", "correction_a": 1.15, "lambda_corrected": 0.038, "density": 20, "density_unit": "kg/m³", "common_thicknesses": [30, 40, 50, 60, 80, 100, 120], "category": "有机保温", "combustion_class": "B1"},
+    {"id": "xps_board", "name": "挤塑聚苯板(XPS)", "lambda": 0.030, "lambda_unit": "W/(m·K)", "correction_a": 1.10, "lambda_corrected": 0.033, "density": 30, "density_unit": "kg/m³", "common_thicknesses": [30, 40, 50, 60, 80, 100], "category": "有机保温", "combustion_class": "B1/B2"},
+    {"id": "pu_board", "name": "聚氨酯保温板(PU)", "lambda": 0.024, "lambda_unit": "W/(m·K)", "correction_a": 1.10, "lambda_corrected": 0.026, "density": 35, "density_unit": "kg/m³", "common_thicknesses": [30, 40, 50, 60, 80, 100], "category": "有机保温", "combustion_class": "B1/B2"},
+    {"id": "pu_spray", "name": "喷涂硬泡聚氨酯(PUR喷涂)", "lambda": 0.024, "lambda_unit": "W/(m·K)", "correction_a": 1.10, "lambda_corrected": 0.026, "density": 35, "density_unit": "kg/m³", "common_thicknesses": [20, 30, 40, 50, 60, 80], "category": "有机保温", "combustion_class": "B1/B2"},
+    {"id": "pir_board", "name": "聚异氰脲酸酯板(PIR)", "lambda": 0.023, "lambda_unit": "W/(m·K)", "correction_a": 1.10, "lambda_corrected": 0.025, "density": 40, "density_unit": "kg/m³", "common_thicknesses": [30, 40, 50, 60, 80, 100], "category": "有机保温", "combustion_class": "B1"},
+    {"id": "rock_wool_board", "name": "岩棉板", "lambda": 0.040, "lambda_unit": "W/(m·K)", "correction_a": 1.20, "lambda_corrected": 0.048, "density": 80, "density_unit": "kg/m³", "common_thicknesses": [40, 50, 60, 80, 100, 120], "category": "无机保温", "combustion_class": "A"},
+    {"id": "glass_wool_board", "name": "玻璃棉板", "lambda": 0.040, "lambda_unit": "W/(m·K)", "correction_a": 1.20, "lambda_corrected": 0.048, "density": 48, "density_unit": "kg/m³", "common_thicknesses": [40, 50, 60, 80, 100], "category": "无机保温", "combustion_class": "A"},
+    {"id": "phenolic_board", "name": "酚醛泡沫板", "lambda": 0.033, "lambda_unit": "W/(m·K)", "correction_a": 1.15, "lambda_corrected": 0.038, "density": 50, "density_unit": "kg/m³", "common_thicknesses": [30, 40, 50, 60, 80], "category": "有机保温", "combustion_class": "B1"},
+    {"id": "aerated_concrete_insulation", "name": "加气混凝土保温板", "lambda": 0.16, "lambda_unit": "W/(m·K)", "correction_a": 1.25, "lambda_corrected": 0.20, "density": 500, "density_unit": "kg/m³", "common_thicknesses": [60, 80, 100, 120], "category": "无机保温", "combustion_class": "A"}
+  ],
+  "plaster_materials": [
+    {"id": "cement_plaster", "name": "水泥砂浆", "thickness_default": 20, "thickness_unit": "mm", "lambda": 0.93, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 1800, "category": "砂浆"},
+    {"id": "lime_cement_plaster", "name": "混合砂浆", "thickness_default": 20, "thickness_unit": "mm", "lambda": 0.87, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 1700, "category": "砂浆"},
+    {"id": "polymer_plaster", "name": "抗裂砂浆(抹面胶浆)", "thickness_default": 5, "thickness_unit": "mm", "lambda": 0.93, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 1800, "category": "砂浆"}
+  ],
+  "roof_materials": [
+    {"id": "concrete_roof_120", "name": "钢筋混凝土屋面板", "thickness_default": 120, "thickness_unit": "mm", "lambda": 1.74, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 2500, "category": "混凝土"},
+    {"id": "concrete_roof_150", "name": "钢筋混凝土屋面板", "thickness_default": 150, "thickness_unit": "mm", "lambda": 1.74, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 2500, "category": "混凝土"},
+    {"id": "precast_concrete_slab", "name": "预制混凝土屋面板", "thickness_default": 120, "thickness_unit": "mm", "lambda": 1.74, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 2500, "category": "混凝土"},
+    {"id": "metal_roof_deck", "name": "压型钢板屋面底板", "thickness_default": 0.8, "thickness_unit": "mm", "lambda": 58.2, "lambda_unit": "W/(m·K)", "correction_a": 1.00, "density": 7850, "category": "金属", "note": "金属板热阻可忽略"}
+  ],
+  "window_types": [
+    {"id": "single_glass_aluminum", "name": "单层玻璃+普通铝合金框", "glass_type": "单层玻璃", "frame_type": "普通铝合金", "K_value": 6.40, "K_unit": "W/(m²·K)", "SHGC": 0.85},
+    {"id": "single_glass_steel", "name": "单层玻璃+钢框", "glass_type": "单层玻璃", "frame_type": "钢框", "K_value": 6.40, "K_unit": "W/(m²·K)", "SHGC": 0.85},
+    {"id": "double_glass_aluminum", "name": "普通中空玻璃+普通铝合金框", "glass_type": "普通中空玻璃(6+12A+6)", "frame_type": "普通铝合金", "K_value": 3.80, "K_unit": "W/(m²·K)", "SHGC": 0.70},
+    {"id": "double_glass_thermal_break", "name": "普通中空玻璃+断桥铝合金框", "glass_type": "普通中空玻璃(6+12A+6)", "frame_type": "断桥铝合金", "K_value": 2.80, "K_unit": "W/(m²·K)", "SHGC": 0.68},
+    {"id": "low_e_thermal_break", "name": "Low-E中空玻璃+断桥铝合金框", "glass_type": "Low-E中空玻璃(6Low-E+12A+6)", "frame_type": "断桥铝合金", "K_value": 1.80, "K_unit": "W/(m²·K)", "SHGC": 0.45},
+    {"id": "low_e_triple_thermal_break", "name": "Low-E三玻两腔+断桥铝合金框", "glass_type": "Low-E三玻两腔(6Low-E+12A+6+12A+6)", "frame_type": "断桥铝合金", "K_value": 1.20, "K_unit": "W/(m²·K)", "SHGC": 0.35},
+    {"id": "double_glass_upvc", "name": "普通中空玻璃+塑钢框", "glass_type": "普通中空玻璃(6+12A+6)", "frame_type": "塑钢/UPVC", "K_value": 2.50, "K_unit": "W/(m²·K)", "SHGC": 0.68},
+    {"id": "low_e_upvc", "name": "Low-E中空玻璃+塑钢框", "glass_type": "Low-E中空玻璃(6Low-E+12A+6)", "frame_type": "塑钢/UPVC", "K_value": 1.50, "K_unit": "W/(m²·K)", "SHGC": 0.45},
+    {"id": "single_glass_wood", "name": "单层玻璃+木框", "glass_type": "单层玻璃", "frame_type": "木框", "K_value": 4.50, "K_unit": "W/(m²·K)", "SHGC": 0.82},
+    {"id": "double_glass_wood", "name": "中空玻璃+木框", "glass_type": "中空玻璃(6+12A+6)", "frame_type": "木框", "K_value": 2.20, "K_unit": "W/(m²·K)", "SHGC": 0.65}
+  ],
+  "ground_types": [
+    {"id": "slab_on_grade", "name": "直接接地", "description": "首层楼板直接与土壤接触"},
+    {"id": "suspended_floor", "name": "架空层", "description": "首层底部有通风空间"},
+    {"id": "basement", "name": "地下室", "description": "有地下室的建筑"}
+  ],
+  "common_constructions": {
+    "exterior_walls": [
+      {
+        "id": "brick_no_insulation",
+        "name": "240砖墙无保温",
+        "layers": [
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "solid_brick_240", "thickness": 240},
+          {"material": "cement_plaster", "thickness": 20}
+        ],
+        "typical_K": 2.02,
+        "note": "老旧建筑常见，严重超标"
+      },
+      {
+        "id": "aerated_block_no_insulation",
+        "name": "加气砼砌块无保温",
+        "layers": [
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "aerated_concrete_block_200", "thickness": 200},
+          {"material": "cement_plaster", "thickness": 20}
+        ],
+        "typical_K": 0.94,
+        "note": "加气砼有一定保温性，但大多地区仍不达标"
+      },
+      {
+        "id": "concrete_no_insulation",
+        "name": "钢筋砼剪力墙无保温",
+        "layers": [
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "concrete_shear_wall_200", "thickness": 200},
+          {"material": "cement_plaster", "thickness": 20}
+        ],
+        "typical_K": 3.85,
+        "note": "保温性能极差，所有地区均严重超标"
+      },
+      {
+        "id": "brick_with_eps_50",
+        "name": "240砖墙+50mm EPS保温",
+        "layers": [
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "solid_brick_240", "thickness": 240},
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "eps_board", "thickness": 50},
+          {"material": "polymer_plaster", "thickness": 5}
+        ],
+        "typical_K": 0.70
+      },
+      {
+        "id": "aerated_with_pu_40",
+        "name": "加气砼砌块+40mm聚氨酯保温",
+        "layers": [
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "aerated_concrete_block_200", "thickness": 200},
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "pu_board", "thickness": 40},
+          {"material": "polymer_plaster", "thickness": 5}
+        ],
+        "typical_K": 0.47
+      }
+    ],
+    "roofs": [
+      {
+        "id": "concrete_roof_no_insulation",
+        "name": "钢筋砼屋面无保温",
+        "layers": [
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "concrete_roof_120", "thickness": 120},
+          {"material": "cement_plaster", "thickness": 20}
+        ],
+        "typical_K": 3.85,
+        "note": "无保温屋面，所有地区均严重超标"
+      },
+      {
+        "id": "concrete_roof_with_xps_50",
+        "name": "钢筋砼屋面+50mm XPS保温",
+        "layers": [
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "concrete_roof_120", "thickness": 120},
+          {"material": "cement_plaster", "thickness": 20},
+          {"material": "xps_board", "thickness": 50}
+        ],
+        "typical_K": 0.52
+      }
+    ]
+  }
+}

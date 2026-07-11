@@ -131,8 +131,8 @@ export default function ReportPage() {
               重新评估
             </button>
             <div className="flex items-center gap-2">
-              <img src="/logo.svg" alt="睿筑" className="h-6 w-auto" />
-              <h1 className="text-sm font-medium text-slate-300">评估报告</h1>
+              <img src="/logo.jpg" alt="睿筑" className="h-9 w-auto rounded" />
+              <h1 className="text-sm font-medium text-slate-300">睿筑建筑节能评估</h1>
             </div>
             <div className="w-16" />
           </div>

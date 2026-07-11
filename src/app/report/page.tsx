@@ -17,16 +17,35 @@ export default function ReportPage() {
   const [exporting, setExporting] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
+  const [debugInfo, setDebugInfo] = useState<string>("");
+
   useEffect(() => {
-    const formStr = sessionStorage.getItem("evaluationForm");
-    const resultStr = sessionStorage.getItem("evaluationResult");
-    if (formStr) setFormData(JSON.parse(formStr));
-    if (resultStr) setResult(JSON.parse(resultStr));
-    // Check if already authenticated
-    const authed = sessionStorage.getItem("userAuthenticated");
-    if (authed === "true") {
-      setAuthenticated(true);
-      setShowAuth(false);
+    try {
+      const formStr = sessionStorage.getItem("evaluationForm");
+      const resultStr = sessionStorage.getItem("evaluationResult");
+      
+      // Debug info for troubleshooting
+      const debug = {
+        formExists: !!formStr,
+        resultExists: !!resultStr,
+        formKeys: formStr ? Object.keys(JSON.parse(formStr)) : [],
+        resultKeys: resultStr ? Object.keys(JSON.parse(resultStr)) : [],
+        formPreview: formStr ? formStr.substring(0, 200) : "null",
+        storageAvailable: typeof window !== "undefined" && "sessionStorage" in window,
+      };
+      setDebugInfo(JSON.stringify(debug, null, 2));
+      
+      if (formStr) setFormData(JSON.parse(formStr));
+      if (resultStr) setResult(JSON.parse(resultStr));
+      
+      // Check if already authenticated
+      const authed = sessionStorage.getItem("userAuthenticated");
+      if (authed === "true") {
+        setAuthenticated(true);
+        setShowAuth(false);
+      }
+    } catch (err) {
+      setDebugInfo(`Error reading sessionStorage: ${err}`);
     }
   }, []);
 
@@ -53,12 +72,31 @@ export default function ReportPage() {
 
   if (!formData || !result) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-slate-400 mb-4">暂无评估数据</p>
-          <button onClick={() => router.push("/form")} className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center max-w-md w-full">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-amber-500/10 flex items-center justify-center">
+            <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <p className="text-slate-300 font-medium mb-2">暂无评估数据</p>
+          <p className="text-slate-500 text-sm mb-4">请先完成建筑信息填写</p>
+          <button 
+            onClick={() => router.push("/form")} 
+            className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+          >
             返回填写
           </button>
+          
+          {/* Debug Info */}
+          <details className="mt-6 text-left">
+            <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-400 mb-2">
+              调试信息（点击展开）
+            </summary>
+            <pre className="text-[10px] text-slate-500 bg-slate-800/50 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all">
+              {debugInfo || "No debug info available"}
+            </pre>
+          </details>
         </div>
       </div>
     );
@@ -489,13 +527,23 @@ function AuthModal({ onSuccess }: { onSuccess: () => void }) {
         <p className="text-[10px] text-slate-600 text-center mt-4">
           注册即表示同意《用户服务协议》和《隐私政策》
         </p>
-        <div className="mt-4 pt-3 border-t border-slate-700/50">
+        
+        {/* 跳过注册按钮 - 移动端优化 */}
+        <div className="mt-6 pt-4 border-t border-slate-600/50">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex-1 h-px bg-slate-700/50"></div>
+            <span className="text-xs text-slate-500">测试模式</span>
+            <div className="flex-1 h-px bg-slate-700/50"></div>
+          </div>
           <button
             onClick={onSuccess}
-            className="w-full py-2.5 text-sm text-amber-400/80 hover:text-amber-400 border border-amber-500/20 hover:border-amber-500/40 rounded-lg transition-colors bg-amber-500/5"
+            className="w-full py-3.5 text-base font-medium text-white bg-slate-600 hover:bg-slate-500 border border-slate-500/50 rounded-xl transition-all active:scale-[0.98] shadow-lg"
           >
-            跳过注册（测试模式）
+            跳过注册，直接查看报告
           </button>
+          <p className="text-[10px] text-slate-500 text-center mt-2">
+            无需手机号，直接进入评估报告
+          </p>
         </div>
       </div>
     </div>

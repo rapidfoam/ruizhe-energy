@@ -32,7 +32,7 @@ const RESIDENTIAL_LIMITS: Record<string, StandardLimits> = {
   I_severe_cold_C: { wallK: 0.35, roofK: 0.25, windowK: 2.20, overheadFloorK: 0.35, windowK_025_035: 2.00, windowK_035_045: 1.80, windowK_gt_045: 1.50 },
   II_cold_A: { wallK: 0.35, roofK: 0.30, windowK: 2.50, overheadFloorK: 0.35, windowK_025_035: 2.20, windowK_035_045: 1.90, windowK_gt_045: 1.70 },
   II_cold_B: { wallK: 0.45, roofK: 0.35, windowK: 2.80, overheadFloorK: 0.45, windowK_025_035: 2.50, windowK_035_045: 2.20, windowK_gt_045: 1.90 },
-  III_hot_summer_cold_winter: { wallK: 0.50, roofK: 0.40, windowK: 2.80, overheadFloorK: 0.50, windowK_025_035: 2.50, windowK_035_045: 2.20, windowK_gt_045: 1.90 },
+  III_hot_summer_cold_winter: { wallK: 0.50, roofK: 0.35, windowK: 2.50, overheadFloorK: 0.50, windowK_025_035: 2.20, windowK_035_045: 2.00, windowK_gt_045: 1.80 },
   IV_hot_summer_warm_winter: { wallK: 0.80, roofK: 0.50, windowK: 3.00, overheadFloorK: 0.80, windowK_025_035: 2.80, windowK_035_045: 2.50, windowK_gt_045: 2.20 },
   V_temperate: { wallK: 0.80, roofK: 0.50, windowK: 3.00, overheadFloorK: 0.60, windowK_025_035: 2.80, windowK_035_045: 2.50, windowK_gt_045: 2.20 },
 };

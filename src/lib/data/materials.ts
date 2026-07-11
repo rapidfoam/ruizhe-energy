@@ -86,16 +86,15 @@ export interface WindowConfig {
 }
 
 export const WINDOW_CONFIGS: WindowConfig[] = [
-  { id: "single_alu", name: "单层铝合金窗", kValue: 5.80, frameMaterial: "铝合金", glassType: "单层普通玻璃", layers: 1, description: "无断桥，保温性差" },
-  { id: "single_wood", name: "单层木窗", kValue: 4.70, frameMaterial: "木", glassType: "单层普通玻璃", layers: 1, description: "传统木窗" },
-  { id: "double_alu", name: "双层铝合金窗(无断桥)", kValue: 4.70, frameMaterial: "铝合金", glassType: "双层普通中空玻璃", layers: 2, description: "普通中空玻璃6+12A+6" },
-  { id: "double_bridge_alu", name: "断桥铝合金双层窗", kValue: 3.20, frameMaterial: "断桥铝合金", glassType: "双层中空玻璃", layers: 2, description: "断桥+中空6+12A+6" },
-  { id: "double_bridge_low_e", name: "断桥铝合金Low-E中空窗", kValue: 2.50, frameMaterial: "断桥铝合金", glassType: "Low-E中空玻璃", layers: 2, description: "断桥+Low-E中空" },
-  { id: "triple_bridge_alu", name: "断桥铝合金三层窗", kValue: 2.20, frameMaterial: "断桥铝合金", glassType: "三层中空玻璃", layers: 3, description: "断桥+三玻两腔" },
-  { id: "triple_bridge_low_e", name: "断桥铝合金Low-E三层窗", kValue: 1.80, frameMaterial: "断桥铝合金", glassType: "Low-E三层中空玻璃", layers: 3, description: "断桥+双Low-E三玻两腔" },
-  { id: "wood_double", name: "木框双层窗", kValue: 2.80, frameMaterial: "木", glassType: "双层中空玻璃", layers: 2, description: "实木框+中空玻璃" },
-  { id: "upvc_double", name: "塑钢双层窗", kValue: 2.80, frameMaterial: "塑钢", glassType: "双层中空玻璃", layers: 2, description: "UPVC框+中空玻璃" },
-  { id: "upvc_low_e", name: "塑钢Low-E中空窗", kValue: 2.20, frameMaterial: "塑钢", glassType: "Low-E中空玻璃", layers: 2, description: "UPVC框+Low-E中空" },
+  { id: "single_alu", name: "单层铝合金窗", kValue: 6.40, frameMaterial: "铝合金", glassType: "单层普通玻璃", layers: 1, description: "无断桥，保温性差" },
+  { id: "single_wood", name: "单层玻璃木窗", kValue: 4.50, frameMaterial: "木", glassType: "单层普通玻璃", layers: 1, description: "传统木窗" },
+  { id: "double_alu", name: "双层铝合金窗(无断桥)", kValue: 3.80, frameMaterial: "铝合金", glassType: "双层普通中空玻璃", layers: 2, description: "普通中空玻璃6+12A+6" },
+  { id: "double_bridge_alu", name: "断桥铝合金中空窗", kValue: 2.80, frameMaterial: "断桥铝合金", glassType: "双层中空玻璃", layers: 2, description: "断桥+中空6+12A+6" },
+  { id: "double_bridge_low_e", name: "断桥Low-E中空窗", kValue: 1.80, frameMaterial: "断桥铝合金", glassType: "Low-E中空玻璃", layers: 2, description: "断桥+Low-E中空" },
+  { id: "triple_bridge_low_e", name: "Low-E三玻两腔窗", kValue: 1.20, frameMaterial: "断桥铝合金", glassType: "Low-E三玻两腔", layers: 3, description: "断桥+Low-E三玻两腔" },
+  { id: "upvc_double", name: "塑钢中空窗", kValue: 2.50, frameMaterial: "塑钢", glassType: "双层中空玻璃", layers: 2, description: "UPVC框+中空玻璃" },
+  { id: "upvc_low_e", name: "Low-E塑钢窗", kValue: 1.50, frameMaterial: "塑钢", glassType: "Low-E中空玻璃", layers: 2, description: "UPVC框+Low-E中空" },
+  { id: "wood_double", name: "中空玻璃木窗", kValue: 2.20, frameMaterial: "木", glassType: "双层中空玻璃", layers: 2, description: "实木框+中空玻璃" },
 ];
 
 // 厚度选择器辅助函数 - 根据保温材料ID获取可选厚度

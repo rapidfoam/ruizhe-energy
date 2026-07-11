@@ -61,25 +61,58 @@ function calcK(layers: { material: MaterialLayer; thickness: number }[]): KValue
   return { layers: calcs, totalResistance: Math.round(totalResistance * 10000) / 10000, kValue, ri: RI, re: RE };
 }
 
+// 水泥砂浆抹灰层 (内外各20mm, λ=0.93 W/(m·K))
+// 依据 GB 50176-2016 附录B
+const CEMENT_MORTAR: MaterialLayer = {
+  id: "cement_mortar",
+  name: "水泥砂浆抹灰层",
+  lambda: 0.93,
+  lambdaCorrection: 1.0,
+  lambdaCorrected: 0.93,
+  category: "plaster",
+  description: "内外抹灰层，各20mm",
+};
+const CEMENT_MORTAR_THICKNESS = 20; // mm
+
 export function calculateWallK(input: WallAssemblyInput): KValueResult {
   const layers: { material: MaterialLayer; thickness: number }[] = [];
+  
+  // 外层水泥砂浆抹灰 (20mm)
+  layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
+  
+  // 基层墙体
   const baseThickness = getWallBaseThickness(input.baseLayer.id);
   layers.push({ material: input.baseLayer, thickness: baseThickness });
 
+  // 保温层
   if (input.insulationLayer.id !== "none" && input.insulationThickness > 0) {
     layers.push({ material: input.insulationLayer, thickness: input.insulationThickness });
   }
+  
+  // 内层水泥砂浆抹灰 (20mm)
+  layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
+  
   return calcK(layers);
 }
 
 export function calculateRoofK(input: RoofAssemblyInput): KValueResult {
   const layers: { material: MaterialLayer; thickness: number }[] = [];
+  
+  // 外层水泥砂浆抹灰/找平层 (20mm)
+  layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
+  
+  // 基层屋面
   const baseThickness = getRoofBaseThickness(input.baseLayer.id);
   layers.push({ material: input.baseLayer, thickness: baseThickness });
 
+  // 保温层
   if (input.insulationLayer.id !== "roof_none" && input.insulationThickness > 0) {
     layers.push({ material: input.insulationLayer, thickness: input.insulationThickness });
   }
+  
+  // 内层水泥砂浆抹灰 (20mm)
+  layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
+  
   return calcK(layers);
 }
 

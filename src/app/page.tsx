@@ -13,7 +13,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
       {/* Logo */}
       <div className="animate-fade-in mb-6">
-        <img src="/logo.jpg" alt="睿筑建筑节能评估" className="h-20 w-auto rounded-lg" />
+        <img src="/logo.png" alt="睿筑建筑节能评估" className="h-20 w-auto" />
       </div>
 
       {/* Header badge */}

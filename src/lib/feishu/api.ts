@@ -101,7 +101,7 @@ function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
   const noneCompliant = !data.wallCompliant && !data.roofCompliant && !data.windowCompliant;
   let complianceText: string;
   if (allCompliant) {
-    complianceText = '达标';
+    complianceText = '全部达标';
   } else if (noneCompliant) {
     complianceText = '未达标';
   } else {
@@ -149,7 +149,18 @@ function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
     '窗户类型': data.windowType || '-',
   };
 
-  // 调试日志：打印实际发送的字段
+  // 调试日志：打印原始数据和转换后的字段
+  console.info('[Feishu] 原始K值数据:', {
+    wallKValue: data.wallKValue,
+    roofKValue: data.roofKValue,
+    windowKValue: data.windowKValue,
+    wallK,
+    roofK,
+    windowK,
+    wallLimit,
+    roofLimit,
+    windowLimit,
+  });
   console.info('[Feishu] 写入字段:', JSON.stringify(fields, null, 2));
 
   return fields;
@@ -184,6 +195,11 @@ export async function writeAssessmentToFeishu(
   const fields = buildFields(data);
 
   try {
+    const requestBody = {
+      records: [{ fields }],
+    };
+    console.info('[Feishu] 发送请求体:', JSON.stringify(requestBody));
+    
     const response = await fetch(
       `${FEISHU_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`,
       {
@@ -192,9 +208,7 @@ export async function writeAssessmentToFeishu(
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          records: [{ fields }],
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 

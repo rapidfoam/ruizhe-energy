@@ -161,23 +161,47 @@ export default function ReportPage() {
       const dateStr = new Date().toLocaleDateString("zh-CN").replace(/\//g, "-");
       const fileName = `睿筑节能评估报告_${formData.city || "未知"}_${dateStr}.pdf`;
 
-      const html2pdfModule = await import("html2pdf.js");
-      const html2pdf = html2pdfModule.default;
-      await html2pdf()
-        .from(reportRef.current)
-        .set({
-          margin: 0,
-          filename: fileName,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            backgroundColor: "#0f172a",
-            useCORS: true,
-            logging: false,
-          },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        })
-        .save();
+      const html2canvasModule = await import("html2canvas");
+      const { jsPDF } = await import("jspdf");
+      const html2canvas = html2canvasModule.default;
+
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: "#0f172a",
+        useCORS: true,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const pdf = new jsPDF({
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait",
+      });
+
+      // A4: 210mm x 297mm
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      if (pdfHeight <= 297) {
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      } else {
+        // 长图分页
+        let position = 0;
+        const pageHeight = 297;
+        let remainingHeight = pdfHeight;
+        
+        while (remainingHeight > 0) {
+          pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, pdfHeight);
+          remainingHeight -= pageHeight;
+          position -= pageHeight;
+          if (remainingHeight > 0) {
+            pdf.addPage();
+          }
+        }
+      }
+
+      pdf.save(fileName);
 
       // 3. 写入飞书（静默处理）
       const phone = sessionStorage.getItem("userPhone") || "";

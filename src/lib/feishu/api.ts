@@ -1,6 +1,12 @@
 /**
  * 飞书多维表格 API 集成
  * 用于将评估数据写入飞书多维表格
+ *
+ * 环境变量：
+ * - FEISHU_APP_ID: 飞书应用 ID
+ * - FEISHU_APP_SECRET: 飞书应用密钥
+ * - FEISHU_TABLE_APP_TOKEN: 多维表格 App Token
+ * - FEISHU_TABLE_ID: 数据表 ID
  */
 
 const FEISHU_API_BASE = 'https://open.feishu.cn/open-apis';
@@ -12,27 +18,12 @@ interface TenantTokenResponse {
   expire: number;
 }
 
-interface FeishuRecord {
-  record_id?: string;
-  fields: Record<string, unknown>;
-}
-
-interface FeishuListResponse {
-  code: number;
-  msg: string;
-  data: {
-    items: FeishuRecord[];
-    total: number;
-    page_token?: string;
-    has_more: boolean;
-  };
-}
-
+// Token 缓存（2小时有效期，提前5分钟刷新）
 let cachedToken: string | null = null;
 let tokenExpireAt: number = 0;
 
 /**
- * 获取飞书 tenant_access_token
+ * 获取飞书 tenant_access_token（带缓存）
  */
 async function getTenantAccessToken(): Promise<string | null> {
   const appId = process.env.FEISHU_APP_ID;
@@ -77,35 +68,101 @@ async function getTenantAccessToken(): Promise<string | null> {
 }
 
 /**
- * 新增评估记录到飞书多维表格
+ * 飞书多维表格字段映射
+ * 字段名必须与多维表格中的列名严格匹配
  */
-export async function createAssessmentRecord(data: {
+export interface FeishuAssessmentData {
   city: string;
   climateZone: string;
   buildingType: string;
-  wallBaseMaterial?: string;
-  wallInsulationMaterial?: string;
-  wallInsulationThickness?: number;
   wallKValue: number;
-  wallLimit: number;
-  wallCompliant: boolean;
-  roofBaseMaterial?: string;
-  roofInsulationMaterial?: string;
-  roofInsulationThickness?: number;
   roofKValue: number;
-  roofLimit: number;
-  roofCompliant: boolean;
-  windowType?: string;
   windowKValue: number;
+  wallLimit: number;
+  roofLimit: number;
   windowLimit: number;
+  wallCompliant: boolean;
+  roofCompliant: boolean;
   windowCompliant: boolean;
   rating: string;
   score: number;
-  phone?: string;
-}): Promise<{ success: boolean; recordId?: string; error?: string }> {
+  phone: string;
+  wallConstruction?: string;
+  roofConstruction?: string;
+  windowType?: string;
+}
+
+/**
+ * 构建飞书表格字段（严格匹配表格列名）
+ */
+function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
+  // 达标判定：综合三个部位
+  const allCompliant = data.wallCompliant && data.roofCompliant && data.windowCompliant;
+  const noneCompliant = !data.wallCompliant && !data.roofCompliant && !data.windowCompliant;
+  let complianceText: string;
+  if (allCompliant) {
+    complianceText = '全部达标';
+  } else if (noneCompliant) {
+    complianceText = '未达标';
+  } else {
+    complianceText = '部分达标';
+  }
+
+  // 评级文本
+  const ratingMap: Record<string, string> = {
+    'A': 'A 优秀',
+    'B': 'B 良好',
+    'C': 'C 合格',
+    'D': 'D 不合格',
+    'E': 'E 不合格',
+  };
+
+  // 评估时间：datetime 格式
+  const now = new Date();
+  const assessmentTime = now.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).replace(/\//g, '-');
+
+  return {
+    '评估时间': assessmentTime,
+    '城市': data.city,
+    '气候分区': data.climateZone,
+    '建筑类型': data.buildingType,
+    '外墙K值': data.wallKValue,
+    '屋面K值': data.roofKValue,
+    '外窗K值': data.windowKValue,
+    '外墙限值': data.wallLimit,
+    '屋面限值': data.roofLimit,
+    '外窗限值': data.windowLimit,
+    '达标判定': complianceText,
+    '评级': ratingMap[data.rating] || data.rating,
+    '评分': data.score,
+    '手机号': data.phone,
+    '墙体构造': data.wallConstruction || '-',
+    '屋面构造': data.roofConstruction || '-',
+    '窗户类型': data.windowType || '-',
+  };
+}
+
+/**
+ * 写入评估记录到飞书多维表格（batch_create）
+ */
+export async function writeAssessmentToFeishu(
+  data: FeishuAssessmentData
+): Promise<{ success: boolean; recordId?: string; error?: string }> {
+  // 未注册用户不写入
+  if (!data.phone) {
+    console.info('[Feishu] 无手机号，跳过飞书写入');
+    return { success: true };
+  }
+
   const token = await getTenantAccessToken();
   if (!token) {
-    // 飞书未配置时优雅降级，返回成功但不写入数据
     console.info('[Feishu] 飞书服务未配置，跳过数据写入');
     return { success: true };
   }
@@ -118,62 +175,41 @@ export async function createAssessmentRecord(data: {
     return { success: true };
   }
 
-  // 构建字段映射
-  const fields: Record<string, unknown> = {
-    '评估时间': new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
-    '城市': data.city,
-    '气候分区': data.climateZone,
-    '建筑类型': data.buildingType,
-    '外墙构造': data.wallBaseMaterial && data.wallInsulationMaterial
-      ? `${data.wallBaseMaterial} + ${data.wallInsulationMaterial} ${data.wallInsulationThickness || 0}mm`
-      : '-',
-    '外墙K值': data.wallKValue,
-    '外墙限值': data.wallLimit,
-    '外墙判定': data.wallCompliant ? '达标' : '超标',
-    '屋面构造': data.roofBaseMaterial && data.roofInsulationMaterial
-      ? `${data.roofBaseMaterial} + ${data.roofInsulationMaterial} ${data.roofInsulationThickness || 0}mm`
-      : '-',
-    '屋面K值': data.roofKValue,
-    '屋面限值': data.roofLimit,
-    '屋面判定': data.roofCompliant ? '达标' : '超标',
-    '外窗类型': data.windowType || '-',
-    '外窗K值': data.windowKValue,
-    '外窗限值': data.windowLimit,
-    '外窗判定': data.windowCompliant ? '达标' : '超标',
-    '综合评级': data.rating,
-    '评分': data.score,
-    '手机号': data.phone || '',
-  };
+  const fields = buildFields(data);
 
   try {
     const response = await fetch(
-      `${FEISHU_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records`,
+      `${FEISHU_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ fields }),
+        body: JSON.stringify({
+          records: [{ fields }],
+        }),
       }
     );
 
     const result = await response.json();
 
     if (result.code !== 0) {
-      console.error('[Feishu] Failed to create record:', result.msg);
+      console.error('[Feishu] Failed to write record:', result.msg);
       return { success: false, error: result.msg };
     }
 
-    return { success: true, recordId: result.data?.record?.record_id };
+    const recordId = result.data?.records?.[0]?.record_id;
+    console.info('[Feishu] Record written successfully:', recordId);
+    return { success: true, recordId };
   } catch (error) {
-    console.error('[Feishu] Error creating record:', error);
+    console.error('[Feishu] Error writing record:', error);
     return { success: false, error: 'Network error' };
   }
 }
 
 /**
- * 更新评估记录的手机号
+ * 更新已有记录的手机号字段
  */
 export async function updateRecordPhone(
   recordId: string,
@@ -181,7 +217,6 @@ export async function updateRecordPhone(
 ): Promise<{ success: boolean; error?: string }> {
   const token = await getTenantAccessToken();
   if (!token) {
-    // 飞书未配置时优雅降级
     console.info('[Feishu] 飞书服务未配置，跳过更新手机号');
     return { success: true };
   }
@@ -212,64 +247,13 @@ export async function updateRecordPhone(
     const result = await response.json();
 
     if (result.code !== 0) {
-      console.error('[Feishu] Failed to update record:', result.msg);
+      console.error('[Feishu] Failed to update phone:', result.msg);
       return { success: false, error: result.msg };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('[Feishu] Error updating record:', error);
-    return { success: false, error: 'Network error' };
-  }
-}
-
-/**
- * 查询评估记录列表
- */
-export async function listAssessmentRecords(options?: {
-  pageToken?: string;
-  pageSize?: number;
-  filter?: string;
-}): Promise<{ success: boolean; data?: FeishuListResponse['data']; error?: string }> {
-  const token = await getTenantAccessToken();
-  if (!token) {
-    console.info('[Feishu] 飞书服务未配置，返回空列表');
-    return { success: true, data: { items: [], total: 0, has_more: false } };
-  }
-
-  const appToken = process.env.FEISHU_TABLE_APP_TOKEN;
-  const tableId = process.env.FEISHU_TABLE_ID;
-
-  if (!appToken || !tableId) {
-    console.info('[Feishu] 表格配置不完整，返回空列表');
-    return { success: true, data: { items: [], total: 0, has_more: false } };
-  }
-
-  const params = new URLSearchParams();
-  if (options?.pageToken) params.set('page_token', options.pageToken);
-  if (options?.pageSize) params.set('page_size', String(options.pageSize));
-  if (options?.filter) params.set('filter', options.filter);
-
-  try {
-    const response = await fetch(
-      `${FEISHU_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records?${params.toString()}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-
-    const result: FeishuListResponse = await response.json();
-
-    if (result.code !== 0) {
-      console.error('[Feishu] Failed to list records:', result.msg);
-      return { success: false, error: result.msg };
-    }
-
-    return { success: true, data: result.data };
-  } catch (error) {
-    console.error('[Feishu] Error listing records:', error);
+    console.error('[Feishu] Error updating phone:', error);
     return { success: false, error: 'Network error' };
   }
 }

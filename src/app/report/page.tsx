@@ -139,8 +139,8 @@ export default function ReportPage() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // 保存报告 - 将评估数据保存到 localStorage
-  const handleSaveReport = useCallback(() => {
+  // 保存报告 - 保存到 localStorage + 写入飞书多维表格
+  const handleSaveReport = useCallback(async () => {
     if (!formData || !result) return;
     try {
       const saveData = {
@@ -148,14 +148,52 @@ export default function ReportPage() {
         formData,
         result,
       };
-      // 保存到 localStorage（持久化）
+      // 1. 保存到 localStorage（持久化）
       const history = JSON.parse(localStorage.getItem("assessmentHistory") || "[]");
       history.unshift(saveData);
-      // 最多保留 20 条记录
       if (history.length > 20) history.length = 20;
       localStorage.setItem("assessmentHistory", JSON.stringify(history));
-      // 同时标记当前 session 已保存
       sessionStorage.setItem("assessmentSaved", "true");
+
+      // 2. 写入飞书多维表格（静默处理，失败不影响用户体验）
+      const phone = sessionStorage.getItem("userPhone") || "";
+      if (phone) {
+        // 构造墙体/屋面构造描述
+        const wallConstruction = formData.wallBase && formData.wallInsulation
+          ? `${formData.wallBase} + ${formData.wallInsulation} ${formData.wallInsulationThickness || 0}mm`
+          : "-";
+        const roofConstruction = formData.roofBase && formData.roofInsulation
+          ? `${formData.roofBase} + ${formData.roofInsulation} ${formData.roofInsulationThickness || 0}mm`
+          : "-";
+
+        fetch('/api/feishu/write', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            city: formData.city || '',
+            climateZone: formData.climateZone || '',
+            buildingType: formData.buildingType || '',
+            wallKValue: result.wallK,
+            roofKValue: result.roofK,
+            windowKValue: result.windowK,
+            wallLimit: result.wallLimit,
+            roofLimit: result.roofLimit,
+            windowLimit: result.windowLimit,
+            wallCompliant: result.wallPass,
+            roofCompliant: result.roofPass,
+            windowCompliant: result.windowPass,
+            rating: result.rating,
+            score: result.score,
+            phone,
+            wallConstruction,
+            roofConstruction,
+            windowType: formData.windowConfig || '',
+          }),
+        }).catch(err => {
+          console.warn('[Feishu] 飞书写入失败，静默处理:', err);
+        });
+      }
+
       setToast({ message: "报告已保存成功", type: "success" });
     } catch (err) {
       console.error("Save failed:", err);

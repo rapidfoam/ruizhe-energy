@@ -1,45 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAssessmentRecord, listAssessmentRecords } from '@/lib/feishu/api';
+import { writeAssessmentToFeishu } from '@/lib/feishu/api';
 
 /**
  * POST /api/assessments
- * 保存评估记录到飞书多维表格
+ * 保存评估记录（兼容旧接口，内部转发到飞书写入）
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const result = await createAssessmentRecord({
-      city: body.city,
-      climateZone: body.climateZone,
-      buildingType: body.buildingType,
-      wallBaseMaterial: body.wallBaseMaterial,
-      wallInsulationMaterial: body.wallInsulationMaterial,
-      wallInsulationThickness: body.wallInsulationThickness,
-      wallKValue: body.wallKValue,
-      wallLimit: body.wallLimit,
-      wallCompliant: body.wallCompliant,
-      roofBaseMaterial: body.roofBaseMaterial,
-      roofInsulationMaterial: body.roofInsulationMaterial,
-      roofInsulationThickness: body.roofInsulationThickness,
-      roofKValue: body.roofKValue,
-      roofLimit: body.roofLimit,
-      roofCompliant: body.roofCompliant,
-      windowType: body.windowType,
-      windowKValue: body.windowKValue,
-      windowLimit: body.windowLimit,
-      windowCompliant: body.windowCompliant,
-      rating: body.rating,
-      score: body.score,
-      phone: body.phone,
-    });
+    // 构造墙体/屋面构造描述
+    const wallConstruction = body.wallBaseMaterial && body.wallInsulationMaterial
+      ? `${body.wallBaseMaterial} + ${body.wallInsulationMaterial} ${body.wallInsulationThickness || 0}mm`
+      : '-';
+    const roofConstruction = body.roofBaseMaterial && body.roofInsulationMaterial
+      ? `${body.roofBaseMaterial} + ${body.roofInsulationMaterial} ${body.roofInsulationThickness || 0}mm`
+      : '-';
 
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 500 }
-      );
-    }
+    const result = await writeAssessmentToFeishu({
+      city: body.city || '',
+      climateZone: body.climateZone || '',
+      buildingType: body.buildingType || '',
+      wallKValue: body.wallKValue ?? 0,
+      roofKValue: body.roofKValue ?? 0,
+      windowKValue: body.windowKValue ?? 0,
+      wallLimit: body.wallLimit ?? 0,
+      roofLimit: body.roofLimit ?? 0,
+      windowLimit: body.windowLimit ?? 0,
+      wallCompliant: body.wallCompliant ?? false,
+      roofCompliant: body.roofCompliant ?? false,
+      windowCompliant: body.windowCompliant ?? false,
+      rating: body.rating || '',
+      score: body.score ?? 0,
+      phone: body.phone || '',
+      wallConstruction,
+      roofConstruction,
+      windowType: body.windowType || '',
+    });
 
     return NextResponse.json({
       success: true,
@@ -48,45 +45,18 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to save assessment:', error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { success: true, recordId: null },
     );
   }
 }
 
 /**
  * GET /api/assessments
- * 查询评估记录列表
+ * 查询评估记录（占位，返回空列表）
  */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const pageToken = searchParams.get('page_token') || undefined;
-    const pageSize = searchParams.get('page_size') ? parseInt(searchParams.get('page_size')!) : 20;
-    const filter = searchParams.get('filter') || undefined;
-
-    const result = await listAssessmentRecords({
-      pageToken,
-      pageSize,
-      filter,
-    });
-
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-    });
-  } catch (error) {
-    console.error('Failed to list assessments:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    data: [],
+  });
 }

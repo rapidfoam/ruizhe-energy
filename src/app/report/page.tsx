@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import html2canvas from "html2canvas";
-import html2pdf from "html2pdf.js";
+// html2canvas and html2pdf.js are dynamically imported to avoid SSR issues
 import { CLIMATE_ZONE_LABELS, type ClimateZone } from "@/lib/data/climate";
 import { BUILDING_TYPES } from "@/lib/data/building-types";
 import { WINDOW_CONFIGS, WALL_MATERIALS, INSULATION_MATERIALS, ROOF_MATERIALS, ROOF_INSULATION_MATERIALS } from "@/lib/data/materials";
@@ -162,6 +161,8 @@ export default function ReportPage() {
       const dateStr = new Date().toLocaleDateString("zh-CN").replace(/\//g, "-");
       const fileName = `睿筑节能评估报告_${formData.city || "未知"}_${dateStr}.pdf`;
 
+      const html2pdfModule = await import("html2pdf.js");
+      const html2pdf = html2pdfModule.default;
       await html2pdf()
         .from(reportRef.current)
         .set({
@@ -236,7 +237,9 @@ export default function ReportPage() {
     }
     setExporting(true);
     try {
-      const canvas = await html2canvas(reportRef.current, {
+      const html2canvasModule = await import("html2canvas");
+      const html2canvas = html2canvasModule.default;
+      const canvas = await html2canvas(reportRef.current!, {
         backgroundColor: "#0f172a",
         scale: 2,
         useCORS: true,

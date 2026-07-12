@@ -117,16 +117,8 @@ function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
     'E': 'E 不合格',
   };
 
-  // 评估时间：datetime 格式
-  const now = new Date();
-  const assessmentTime = now.toLocaleString('zh-CN', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).replace(/\//g, '-');
+  // 评估时间：飞书日期字段需要 Unix 毫秒时间戳
+  const assessmentTime = Date.now();
 
   return {
     '评估时间': assessmentTime,

@@ -54,71 +54,77 @@ export default function ReportPage() {
     }
   }, []);
 
-  // Save assessment record when data is loaded
-  useEffect(() => {
-    if (!formData || !result) return;
+  // 飞书自动写入 - 注册后自动触发，静默写入
+  const writeFeishuSilently = useCallback(async (phone: string) => {
+    if (!formData || !result || !phone) return;
     
-    // Check if already saved in this session
-    const saved = sessionStorage.getItem("assessmentSaved");
-    if (saved === "true") return;
-    
-    // Generate session ID if not exists
-    let sessionId = sessionStorage.getItem("sessionId");
-    if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      sessionStorage.setItem("sessionId", sessionId);
-    }
-    
-    // Prepare assessment data
-    const assessmentData = {
-      session_id: sessionId,
-      city: formData.city,
-      climate_zone: formData.climateZone,
-      building_type: formData.buildingType,
-      wall_base_material: formData.wallBase,
-      wall_insulation_material: formData.wallInsulation,
-      wall_insulation_thickness: formData.wallInsulationThickness,
-      wall_k_value: result.wallK,
-      wall_standard_limit: result.wallLimit,
-      wall_compliant: result.wallPass,
-      roof_base_material: formData.roofBase,
-      roof_insulation_material: formData.roofInsulation,
-      roof_insulation_thickness: formData.roofInsulationThickness,
-      roof_k_value: result.roofK,
-      roof_standard_limit: result.roofLimit,
-      roof_compliant: result.roofPass,
-      window_type: formData.windowConfig,
-      window_k_value: result.windowK,
-      window_standard_limit: result.windowLimit,
-      window_compliant: result.windowPass,
-      overall_rating: result.rating,
-      overall_score: result.score,
-      heat_loss_wall: result.heatLoss?.wall,
-      heat_loss_roof: result.heatLoss?.roof,
-      heat_loss_window: result.heatLoss?.window,
-      heat_loss_ventilation: result.heatLoss?.infiltration,
-    };
-    
-    // Save to server (Feishu Bitable)
-    fetch('/api/assessments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(assessmentData),
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        sessionStorage.setItem("assessmentSaved", "true");
-        if (data.recordId) {
-          sessionStorage.setItem("assessmentRecordId", data.recordId);
-        }
-        console.log('Assessment saved:', data.recordId);
+    try {
+      const wallBaseName = WALL_MATERIALS.find(m => m.id === formData.wallBase)?.name || formData.wallBase || '';
+      const wallInsulationName = INSULATION_MATERIALS.find(m => m.id === formData.wallInsulation)?.name || formData.wallInsulation || '';
+      const wallConstruction = wallBaseName && wallInsulationName
+        ? `${wallBaseName} + ${wallInsulationName} ${formData.wallInsulationThickness || 0}mm`
+        : "-";
+      const roofBaseName = ROOF_MATERIALS.find(m => m.id === formData.roofBase)?.name || formData.roofBase || '';
+      const roofInsulationName = ROOF_INSULATION_MATERIALS.find(m => m.id === formData.roofInsulation)?.name || formData.roofInsulation || '';
+      const roofConstruction = roofBaseName && roofInsulationName
+        ? `${roofBaseName} + ${roofInsulationName} ${formData.roofInsulationThickness || 0}mm`
+        : "-";
+      const windowTypeName = WINDOW_CONFIGS.find(w => w.id === formData.windowConfig)?.name || formData.windowConfig || '';
+
+      const feishuData = {
+        city: formData.city || '',
+        climateZone: formData.climateZone || '',
+        buildingType: formData.buildingType || '',
+        wallKValue: result.wallK,
+        roofKValue: result.roofK,
+        windowKValue: result.windowK,
+        wallLimit: result.wallLimit,
+        roofLimit: result.roofLimit,
+        windowLimit: result.windowLimit,
+        wallCompliant: result.wallPass,
+        roofCompliant: result.roofPass,
+        windowCompliant: result.windowPass,
+        rating: result.rating,
+        score: result.score,
+        phone,
+        wallConstruction,
+        roofConstruction,
+        windowType: windowTypeName,
+      };
+
+      console.info('[Feishu] 自动写入数据:', feishuData);
+
+      const response = await fetch('/api/feishu/write', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feishuData),
+      });
+      
+      const data = await response.json();
+      console.log('[Feishu] 自动写入结果:', data);
+      
+      if (data.feishuWritten) {
+        sessionStorage.setItem("feishuWritten", "true");
+        sessionStorage.setItem("feishuRecordId", data.feishuRecordId || "");
       }
-    })
-    .catch(err => {
-      console.error('Failed to save assessment:', err);
-    });
+    } catch (err) {
+      console.warn('[Feishu] 自动写入失败（静默处理）:', err);
+    }
   }, [formData, result]);
+
+  // 注册成功后自动写入飞书
+  useEffect(() => {
+    if (!isRegistered || !formData || !result) return;
+    
+    // 检查是否已写入
+    const written = sessionStorage.getItem("feishuWritten");
+    if (written === "true") return;
+    
+    const phone = sessionStorage.getItem("userPhone");
+    if (!phone) return;
+    
+    writeFeishuSilently(phone);
+  }, [isRegistered, formData, result, writeFeishuSilently]);
 
   // 检查是否需要注册，未注册则弹出弹窗
   const requireAuth = useCallback((callback: () => void) => {
@@ -203,45 +209,10 @@ export default function ReportPage() {
 
       pdf.save(fileName);
 
-      // 3. 写入飞书（静默处理）
+      // 3. 写入飞书（如果尚未写入）
       const phone = sessionStorage.getItem("userPhone") || "";
-      if (phone) {
-        const wallBaseName = WALL_MATERIALS.find(m => m.id === formData.wallBase)?.name || formData.wallBase || '';
-        const wallInsulationName = INSULATION_MATERIALS.find(m => m.id === formData.wallInsulation)?.name || formData.wallInsulation || '';
-        const wallConstruction = wallBaseName && wallInsulationName
-          ? `${wallBaseName} + ${wallInsulationName} ${formData.wallInsulationThickness || 0}mm`
-          : "-";
-        const roofBaseName = ROOF_MATERIALS.find(m => m.id === formData.roofBase)?.name || formData.roofBase || '';
-        const roofInsulationName = ROOF_INSULATION_MATERIALS.find(m => m.id === formData.roofInsulation)?.name || formData.roofInsulation || '';
-        const roofConstruction = roofBaseName && roofInsulationName
-          ? `${roofBaseName} + ${roofInsulationName} ${formData.roofInsulationThickness || 0}mm`
-          : "-";
-        const windowTypeName = WINDOW_CONFIGS.find(w => w.id === formData.windowConfig)?.name || formData.windowConfig || '';
-
-        fetch('/api/feishu/write', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            city: formData.city || '',
-            climateZone: formData.climateZone || '',
-            buildingType: formData.buildingType || '',
-            wallKValue: result.wallK,
-            roofKValue: result.roofK,
-            windowKValue: result.windowK,
-            wallLimit: result.wallLimit,
-            roofLimit: result.roofLimit,
-            windowLimit: result.windowLimit,
-            wallCompliant: result.wallPass,
-            roofCompliant: result.roofPass,
-            windowCompliant: result.windowPass,
-            rating: result.rating,
-            score: result.score,
-            phone,
-            wallConstruction,
-            roofConstruction,
-            windowType: windowTypeName,
-          }),
-        }).catch(err => console.warn('[Feishu] 飞书写入失败:', err));
+      if (phone && sessionStorage.getItem("feishuWritten") !== "true") {
+        await writeFeishuSilently(phone);
       }
 
       setToast({ message: "PDF报告已生成", type: "success" });

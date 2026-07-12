@@ -214,22 +214,38 @@ export default function ReportPage() {
 
   // 下载长图 - html2canvas 截图生成 PNG
   const handleDownloadImage = useCallback(async () => {
-    if (!reportRef.current) return;
+    if (!reportRef.current) {
+      console.error("[Export] reportRef.current is null");
+      setToast({ message: "报告区域未加载", type: "error" });
+      return;
+    }
     setExporting(true);
     try {
+      console.info("[Export] Starting html2canvas...");
       const canvas = await html2canvas(reportRef.current, {
         backgroundColor: "#0f172a",
         scale: 2,
         useCORS: true,
         logging: false,
+        allowTaint: true,
+        foreignObjectRendering: true,
       });
+      console.info("[Export] Canvas created:", canvas.width, "x", canvas.height);
+      
+      const dataUrl = canvas.toDataURL("image/png");
+      console.info("[Export] DataURL length:", dataUrl.length);
+      
       const link = document.createElement("a");
-      link.download = `建筑节能评估报告_${formData?.city || ""}_${new Date().toLocaleDateString("zh-CN")}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.download = `建筑节能评估报告_${formData?.city || ""}_${new Date().toLocaleDateString("zh-CN").replace(/\//g, "-")}.png`;
+      link.href = dataUrl;
+      link.style.display = "none";
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      
       setToast({ message: "长图已下载", type: "success" });
     } catch (err) {
-      console.error("Export failed:", err);
+      console.error("[Export] Failed:", err);
       setToast({ message: "导出失败，请重试", type: "error" });
     } finally {
       setExporting(false);

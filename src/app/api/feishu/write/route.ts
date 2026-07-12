@@ -11,6 +11,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // 调试：打印前端传来的原始数据
+    console.info('[Feishu Write] 前端原始数据:', JSON.stringify({
+      wallKValue: body.wallKValue,
+      roofKValue: body.roofKValue,
+      windowKValue: body.windowKValue,
+      wallKValueType: typeof body.wallKValue,
+      roofKValueType: typeof body.roofKValue,
+      windowKValueType: typeof body.windowKValue,
+    }));
+
     // 验证必填字段
     if (!body.phone) {
       return NextResponse.json(

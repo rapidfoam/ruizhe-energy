@@ -121,25 +121,36 @@ function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
   const assessmentTime = Date.now();
 
   // K值和限值确保为数字类型（飞书数字字段要求）
-  const wallK = Number(data.wallKValue) || 0;
-  const roofK = Number(data.roofKValue) || 0;
-  const windowK = Number(data.windowKValue) || 0;
-  const wallLimit = Number(data.wallLimit) || 0;
-  const roofLimit = Number(data.roofLimit) || 0;
-  const windowLimit = Number(data.windowLimit) || 0;
-  const score = Number(data.score) || 0;
+  const wallK = Number(data.wallKValue);
+  const roofK = Number(data.roofKValue);
+  const windowK = Number(data.windowKValue);
+  const wallLimit = Number(data.wallLimit);
+  const roofLimit = Number(data.roofLimit);
+  const windowLimit = Number(data.windowLimit);
+  const score = Number(data.score);
+
+  // 调试：打印转换后的K值
+  console.info('[Feishu] K值转换结果:', JSON.stringify({
+    '原始wallKValue': data.wallKValue,
+    '转换后wallK': wallK,
+    'isNaN': Number.isNaN(wallK),
+    '原始roofKValue': data.roofKValue,
+    '转换后roofK': roofK,
+    '原始windowKValue': data.windowKValue,
+    '转换后windowK': windowK,
+  }));
 
   const fields: Record<string, unknown> = {
     '评估时间': assessmentTime,
     '城市': data.city,
     '气候分区': data.climateZone,
     '建筑类型': data.buildingType,
-    '外墙K值': wallK,
-    '屋面K值': roofK,
-    '外窗K值': windowK,
-    '外墙限值': wallLimit,
-    '屋面限值': roofLimit,
-    '外窗限值': windowLimit,
+    '外墙K值': Number.isNaN(wallK) ? 0 : wallK,
+    '屋面K值': Number.isNaN(roofK) ? 0 : roofK,
+    '外窗K值': Number.isNaN(windowK) ? 0 : windowK,
+    '外墙限值': Number.isNaN(wallLimit) ? 0 : wallLimit,
+    '屋面限值': Number.isNaN(roofLimit) ? 0 : roofLimit,
+    '外窗限值': Number.isNaN(windowLimit) ? 0 : windowLimit,
     '达标判定': complianceText,
     '评级': ratingMap[data.rating] || data.rating,
     '评分': score,

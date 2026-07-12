@@ -96,12 +96,12 @@ export interface FeishuAssessmentData {
  * 构建飞书表格字段（严格匹配表格列名）
  */
 function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
-  // 达标判定：综合三个部位
+  // 达标判定：综合三个部位（使用简洁文本，匹配飞书select选项）
   const allCompliant = data.wallCompliant && data.roofCompliant && data.windowCompliant;
   const noneCompliant = !data.wallCompliant && !data.roofCompliant && !data.windowCompliant;
   let complianceText: string;
   if (allCompliant) {
-    complianceText = '全部达标';
+    complianceText = '达标';
   } else if (noneCompliant) {
     complianceText = '未达标';
   } else {
@@ -120,25 +120,39 @@ function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
   // 评估时间：飞书日期字段需要 Unix 毫秒时间戳
   const assessmentTime = Date.now();
 
-  return {
+  // K值和限值确保为数字类型（飞书数字字段要求）
+  const wallK = Number(data.wallKValue) || 0;
+  const roofK = Number(data.roofKValue) || 0;
+  const windowK = Number(data.windowKValue) || 0;
+  const wallLimit = Number(data.wallLimit) || 0;
+  const roofLimit = Number(data.roofLimit) || 0;
+  const windowLimit = Number(data.windowLimit) || 0;
+  const score = Number(data.score) || 0;
+
+  const fields: Record<string, unknown> = {
     '评估时间': assessmentTime,
     '城市': data.city,
     '气候分区': data.climateZone,
     '建筑类型': data.buildingType,
-    '外墙K值': data.wallKValue,
-    '屋面K值': data.roofKValue,
-    '外窗K值': data.windowKValue,
-    '外墙限值': data.wallLimit,
-    '屋面限值': data.roofLimit,
-    '外窗限值': data.windowLimit,
+    '外墙K值': wallK,
+    '屋面K值': roofK,
+    '外窗K值': windowK,
+    '外墙限值': wallLimit,
+    '屋面限值': roofLimit,
+    '外窗限值': windowLimit,
     '达标判定': complianceText,
     '评级': ratingMap[data.rating] || data.rating,
-    '评分': data.score,
+    '评分': score,
     '手机号': data.phone,
     '墙体构造': data.wallConstruction || '-',
     '屋面构造': data.roofConstruction || '-',
     '窗户类型': data.windowType || '-',
   };
+
+  // 调试日志：打印实际发送的字段
+  console.info('[Feishu] 写入字段:', JSON.stringify(fields, null, 2));
+
+  return fields;
 }
 
 /**

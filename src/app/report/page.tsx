@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import { CLIMATE_ZONE_LABELS, type ClimateZone } from "@/lib/data/climate";
 import { BUILDING_TYPES } from "@/lib/data/building-types";
-import { WINDOW_CONFIGS } from "@/lib/data/materials";
+import { WINDOW_CONFIGS, WALL_MATERIALS, INSULATION_MATERIALS, ROOF_MATERIALS, ROOF_INSULATION_MATERIALS } from "@/lib/data/materials";
 import type { FormData, EvaluationResult } from "@/lib/types";
 
 export default function ReportPage() {
@@ -158,37 +158,48 @@ export default function ReportPage() {
       // 2. 写入飞书多维表格（静默处理，失败不影响用户体验）
       const phone = sessionStorage.getItem("userPhone") || "";
       if (phone) {
-        // 构造墙体/屋面构造描述
-        const wallConstruction = formData.wallBase && formData.wallInsulation
-          ? `${formData.wallBase} + ${formData.wallInsulation} ${formData.wallInsulationThickness || 0}mm`
+        // 构造墙体/屋面构造描述（使用材料名称而非ID）
+        const wallBaseName = WALL_MATERIALS.find(m => m.id === formData.wallBase)?.name || formData.wallBase || '';
+        const wallInsulationName = INSULATION_MATERIALS.find(m => m.id === formData.wallInsulation)?.name || formData.wallInsulation || '';
+        const wallConstruction = wallBaseName && wallInsulationName
+          ? `${wallBaseName} + ${wallInsulationName} ${formData.wallInsulationThickness || 0}mm`
           : "-";
-        const roofConstruction = formData.roofBase && formData.roofInsulation
-          ? `${formData.roofBase} + ${formData.roofInsulation} ${formData.roofInsulationThickness || 0}mm`
+
+        const roofBaseName = ROOF_MATERIALS.find(m => m.id === formData.roofBase)?.name || formData.roofBase || '';
+        const roofInsulationName = ROOF_INSULATION_MATERIALS.find(m => m.id === formData.roofInsulation)?.name || formData.roofInsulation || '';
+        const roofConstruction = roofBaseName && roofInsulationName
+          ? `${roofBaseName} + ${roofInsulationName} ${formData.roofInsulationThickness || 0}mm`
           : "-";
+
+        const windowTypeName = WINDOW_CONFIGS.find(w => w.id === formData.windowConfig)?.name || formData.windowConfig || '';
+
+        // 调试：打印发送给飞书的数据
+        const feishuData = {
+          city: formData.city || '',
+          climateZone: formData.climateZone || '',
+          buildingType: formData.buildingType || '',
+          wallKValue: result.wallK,
+          roofKValue: result.roofK,
+          windowKValue: result.windowK,
+          wallLimit: result.wallLimit,
+          roofLimit: result.roofLimit,
+          windowLimit: result.windowLimit,
+          wallCompliant: result.wallPass,
+          roofCompliant: result.roofPass,
+          windowCompliant: result.windowPass,
+          rating: result.rating,
+          score: result.score,
+          phone,
+          wallConstruction,
+          roofConstruction,
+          windowType: windowTypeName,
+        };
+        console.info('[Feishu] 发送数据:', feishuData);
 
         fetch('/api/feishu/write', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            city: formData.city || '',
-            climateZone: formData.climateZone || '',
-            buildingType: formData.buildingType || '',
-            wallKValue: result.wallK,
-            roofKValue: result.roofK,
-            windowKValue: result.windowK,
-            wallLimit: result.wallLimit,
-            roofLimit: result.roofLimit,
-            windowLimit: result.windowLimit,
-            wallCompliant: result.wallPass,
-            roofCompliant: result.roofPass,
-            windowCompliant: result.windowPass,
-            rating: result.rating,
-            score: result.score,
-            phone,
-            wallConstruction,
-            roofConstruction,
-            windowType: formData.windowConfig || '',
-          }),
+          body: JSON.stringify(feishuData),
         }).catch(err => {
           console.warn('[Feishu] 飞书写入失败，静默处理:', err);
         });

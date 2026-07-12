@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
+import html2pdf from "html2pdf.js";
 import { CLIMATE_ZONE_LABELS, type ClimateZone } from "@/lib/data/climate";
 import { BUILDING_TYPES } from "@/lib/data/building-types";
 import { WINDOW_CONFIGS, WALL_MATERIALS, INSULATION_MATERIALS, ROOF_MATERIALS, ROOF_INSULATION_MATERIALS } from "@/lib/data/materials";
@@ -16,6 +17,7 @@ export default function ReportPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showConsult, setShowConsult] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -139,89 +141,101 @@ export default function ReportPage() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // 保存报告 - 保存到 localStorage + 写入飞书多维表格
+  // 保存报告 - 生成PDF下载 + localStorage缓存 + 飞书写入
   const handleSaveReport = useCallback(async () => {
-    if (!formData || !result) return;
+    if (!formData || !result || !reportRef.current) return;
+    setExporting(true);
     try {
+      // 1. localStorage 缓存
       const saveData = {
         savedAt: new Date().toISOString(),
         formData,
         result,
       };
-      // 1. 保存到 localStorage（持久化）
       const history = JSON.parse(localStorage.getItem("assessmentHistory") || "[]");
       history.unshift(saveData);
       if (history.length > 20) history.length = 20;
       localStorage.setItem("assessmentHistory", JSON.stringify(history));
       sessionStorage.setItem("assessmentSaved", "true");
 
-      // 2. 写入飞书多维表格（静默处理，失败不影响用户体验）
+      // 2. 生成PDF下载
+      const dateStr = new Date().toLocaleDateString("zh-CN").replace(/\//g, "-");
+      const fileName = `睿筑节能评估报告_${formData.city || "未知"}_${dateStr}.pdf`;
+
+      await html2pdf()
+        .from(reportRef.current)
+        .set({
+          margin: 0,
+          filename: fileName,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            backgroundColor: "#0f172a",
+            useCORS: true,
+            logging: false,
+          },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        })
+        .save();
+
+      // 3. 写入飞书（静默处理）
       const phone = sessionStorage.getItem("userPhone") || "";
       if (phone) {
-        // 构造墙体/屋面构造描述（使用材料名称而非ID）
         const wallBaseName = WALL_MATERIALS.find(m => m.id === formData.wallBase)?.name || formData.wallBase || '';
         const wallInsulationName = INSULATION_MATERIALS.find(m => m.id === formData.wallInsulation)?.name || formData.wallInsulation || '';
         const wallConstruction = wallBaseName && wallInsulationName
           ? `${wallBaseName} + ${wallInsulationName} ${formData.wallInsulationThickness || 0}mm`
           : "-";
-
         const roofBaseName = ROOF_MATERIALS.find(m => m.id === formData.roofBase)?.name || formData.roofBase || '';
         const roofInsulationName = ROOF_INSULATION_MATERIALS.find(m => m.id === formData.roofInsulation)?.name || formData.roofInsulation || '';
         const roofConstruction = roofBaseName && roofInsulationName
           ? `${roofBaseName} + ${roofInsulationName} ${formData.roofInsulationThickness || 0}mm`
           : "-";
-
         const windowTypeName = WINDOW_CONFIGS.find(w => w.id === formData.windowConfig)?.name || formData.windowConfig || '';
-
-        // 调试：打印发送给飞书的数据
-        const feishuData = {
-          city: formData.city || '',
-          climateZone: formData.climateZone || '',
-          buildingType: formData.buildingType || '',
-          wallKValue: result.wallK,
-          roofKValue: result.roofK,
-          windowKValue: result.windowK,
-          wallLimit: result.wallLimit,
-          roofLimit: result.roofLimit,
-          windowLimit: result.windowLimit,
-          wallCompliant: result.wallPass,
-          roofCompliant: result.roofPass,
-          windowCompliant: result.windowPass,
-          rating: result.rating,
-          score: result.score,
-          phone,
-          wallConstruction,
-          roofConstruction,
-          windowType: windowTypeName,
-        };
-        console.info('[Feishu] 发送数据:', feishuData);
 
         fetch('/api/feishu/write', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(feishuData),
-        }).catch(err => {
-          console.warn('[Feishu] 飞书写入失败，静默处理:', err);
-        });
+          body: JSON.stringify({
+            city: formData.city || '',
+            climateZone: formData.climateZone || '',
+            buildingType: formData.buildingType || '',
+            wallKValue: result.wallK,
+            roofKValue: result.roofK,
+            windowKValue: result.windowK,
+            wallLimit: result.wallLimit,
+            roofLimit: result.roofLimit,
+            windowLimit: result.windowLimit,
+            wallCompliant: result.wallPass,
+            roofCompliant: result.roofPass,
+            windowCompliant: result.windowPass,
+            rating: result.rating,
+            score: result.score,
+            phone,
+            wallConstruction,
+            roofConstruction,
+            windowType: windowTypeName,
+          }),
+        }).catch(err => console.warn('[Feishu] 飞书写入失败:', err));
       }
 
-      setToast({ message: "报告已保存成功", type: "success" });
+      setToast({ message: "PDF报告已生成", type: "success" });
     } catch (err) {
       console.error("Save failed:", err);
       setToast({ message: "保存失败，请重试", type: "error" });
+    } finally {
+      setExporting(false);
     }
   }, [formData, result]);
 
-  // 下载长图 - html2canvas 截图生成 PNG
+  // 下载长图 - html2canvas截图后弹出全屏预览，长按保存
   const handleDownloadImage = useCallback(async () => {
     if (!reportRef.current) {
-      console.error("[Export] reportRef.current is null");
       setToast({ message: "报告区域未加载", type: "error" });
       return;
     }
     setExporting(true);
     try {
-      console.info("[Export] Starting html2canvas...");
       const canvas = await html2canvas(reportRef.current, {
         backgroundColor: "#0f172a",
         scale: 2,
@@ -230,27 +244,15 @@ export default function ReportPage() {
         allowTaint: true,
         foreignObjectRendering: true,
       });
-      console.info("[Export] Canvas created:", canvas.width, "x", canvas.height);
-      
       const dataUrl = canvas.toDataURL("image/png");
-      console.info("[Export] DataURL length:", dataUrl.length);
-      
-      const link = document.createElement("a");
-      link.download = `建筑节能评估报告_${formData?.city || ""}_${new Date().toLocaleDateString("zh-CN").replace(/\//g, "-")}.png`;
-      link.href = dataUrl;
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      setToast({ message: "长图已下载", type: "success" });
+      setPreviewImage(dataUrl);
     } catch (err) {
       console.error("[Export] Failed:", err);
-      setToast({ message: "导出失败，请重试", type: "error" });
+      setToast({ message: "生成图片失败，请重试", type: "error" });
     } finally {
       setExporting(false);
     }
-  }, [formData]);
+  }, []);
 
   if (!formData || !result) {
     return (
@@ -326,6 +328,34 @@ export default function ReportPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             )}
             {toast.message}
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal - 全屏图片预览，长按保存 */}
+      {previewImage && (
+        <div className="fixed inset-0 z-[70] bg-black/95 flex flex-col">
+          {/* Top bar */}
+          <div className="flex-shrink-0 px-4 pt-4 pb-2 text-center">
+            <p className="text-white/80 text-sm">长按图片保存到相册</p>
+          </div>
+          {/* Scrollable image area */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4">
+            <img
+              src={previewImage}
+              alt="评估报告长图"
+              className="w-full h-auto rounded-lg"
+              draggable={false}
+            />
+          </div>
+          {/* Close button */}
+          <div className="flex-shrink-0 px-4 py-3 text-center">
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="px-8 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-medium transition-colors"
+            >
+              关闭
+            </button>
           </div>
         </div>
       )}

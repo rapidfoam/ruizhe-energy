@@ -2,8 +2,7 @@
 // 公式: K = 1 / (Ri + Σ(δn / (λn × an)) + Re)
 // 依据 GB 50176-2016 表3.1.2-1 和 表3.1.2-2
 
-import type { MaterialLayer } from "../data/materials";
-import { getWallBaseThickness, getRoofBaseThickness } from "../data/materials";
+import type { MaterialLayer, WallType, RoofType } from "../data/materials";
 
 // 内表面换热阻 Ri (m²·K)/W - GB 50176-2016 表3.1.2-1
 const RI_WALL = 0.11; // 墙面、地面（热流向下或水平）
@@ -31,13 +30,15 @@ export interface KValueResult {
 }
 
 export interface WallAssemblyInput {
-  baseLayer: MaterialLayer;
+  wallType: WallType;
+  wallThickness: number; // mm
   insulationLayer: MaterialLayer;
   insulationThickness: number; // mm
 }
 
 export interface RoofAssemblyInput {
-  baseLayer: MaterialLayer;
+  roofType: RoofType;
+  roofThickness: number; // mm
   insulationLayer: MaterialLayer;
   insulationThickness: number; // mm
 }
@@ -84,8 +85,7 @@ export function calculateWallK(input: WallAssemblyInput): KValueResult {
   layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
   
   // 基层墙体
-  const baseThickness = getWallBaseThickness(input.baseLayer.id);
-  layers.push({ material: input.baseLayer, thickness: baseThickness });
+  layers.push({ material: { ...input.wallType, id: input.wallType.id, category: "wall" as const }, thickness: input.wallThickness });
 
   // 保温层
   if (input.insulationLayer.id !== "none" && input.insulationThickness > 0) {
@@ -106,8 +106,7 @@ export function calculateRoofK(input: RoofAssemblyInput): KValueResult {
   layers.push({ material: CEMENT_MORTAR, thickness: CEMENT_MORTAR_THICKNESS });
   
   // 基层屋面
-  const baseThickness = getRoofBaseThickness(input.baseLayer.id);
-  layers.push({ material: input.baseLayer, thickness: baseThickness });
+  layers.push({ material: { ...input.roofType, id: input.roofType.id, category: "roof" as const }, thickness: input.roofThickness });
 
   // 保温层
   if (input.insulationLayer.id !== "roof_none" && input.insulationThickness > 0) {

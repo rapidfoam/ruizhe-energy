@@ -15,18 +15,41 @@ export interface MaterialLayer {
   commonThicknesses?: number[];
 }
 
-// 墙体基层材料
-export const WALL_MATERIALS: MaterialLayer[] = [
-  { id: "solid_brick_240", name: "实心黏土砖墙 240mm", lambda: 0.81, lambdaCorrection: 1.00, lambdaCorrected: 0.81, category: "wall", density: 1800, specificHeat: 1.05, description: "标准黏土实心砖" },
-  { id: "solid_brick_370", name: "实心黏土砖墙 370mm", lambda: 0.81, lambdaCorrection: 1.00, lambdaCorrected: 0.81, category: "wall", density: 1800, specificHeat: 1.05, description: "一砖半墙" },
-  { id: "porous_brick_240", name: "多孔砖墙(KP1) 240mm", lambda: 0.58, lambdaCorrection: 1.00, lambdaCorrected: 0.58, category: "wall", density: 1400, specificHeat: 1.05, description: "KP1型多孔砖" },
-  { id: "aerated_concrete_block_200", name: "加气混凝土砌块 200mm", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, category: "wall", density: 600, specificHeat: 1.05, description: "B06级" },
-  { id: "aerated_concrete_block_250", name: "加气混凝土砌块 250mm", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, category: "wall", density: 600, specificHeat: 1.05, description: "B06级" },
-  { id: "aerated_concrete_block_300", name: "加气混凝土砌块 300mm", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, category: "wall", density: 600, specificHeat: 1.05, description: "B06级" },
-  { id: "concrete_shear_wall_200", name: "钢筋混凝土剪力墙 200mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "wall", density: 2500, specificHeat: 0.92, description: "现浇混凝土" },
-  { id: "concrete_shear_wall_250", name: "钢筋混凝土剪力墙 250mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "wall", density: 2500, specificHeat: 0.92, description: "现浇混凝土" },
-  { id: "hollow_concrete_block_190", name: "混凝土空心砌块 190mm", lambda: 0.80, lambdaCorrection: 1.00, lambdaCorrected: 0.80, category: "wall", density: 1500, specificHeat: 0.92, description: "空心砌块" },
+// 墙体基层材料类型（不含厚度）
+export interface WallType {
+  id: string;
+  name: string;
+  lambda: number;
+  lambdaCorrection: number;
+  lambdaCorrected: number;
+  density: number;
+  description: string;
+  thicknesses: number[]; // mm
+}
+
+export const WALL_TYPES: WallType[] = [
+  { id: "solid_brick", name: "实心黏土砖墙", lambda: 0.81, lambdaCorrection: 1.00, lambdaCorrected: 0.81, density: 1800, description: "标准黏土实心砖", thicknesses: [240, 370] },
+  { id: "porous_brick", name: "多孔砖墙(KP1)", lambda: 0.58, lambdaCorrection: 1.00, lambdaCorrected: 0.58, density: 1400, description: "KP1型多孔砖", thicknesses: [240] },
+  { id: "aerated_concrete_block", name: "加气混凝土砌块", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, density: 600, description: "B06级", thicknesses: [200, 250, 300] },
+  { id: "concrete_shear_wall", name: "钢筋混凝土剪力墙", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, density: 2500, description: "现浇混凝土", thicknesses: [200, 250] },
+  { id: "hollow_concrete_block", name: "混凝土空心砌块", lambda: 0.80, lambdaCorrection: 1.00, lambdaCorrected: 0.80, density: 1500, description: "空心砌块", thicknesses: [190] },
+  { id: "light_wood_wall", name: "轻型木结构墙体", lambda: 0.14, lambdaCorrection: 1.10, lambdaCorrected: 0.154, density: 500, description: "木龙骨+OSB板+石膏板", thicknesses: [90, 120, 140] },
+  { id: "light_steel_wall", name: "轻型钢结构板墙体", lambda: 0.20, lambdaCorrection: 1.10, lambdaCorrected: 0.22, density: 800, description: "轻钢龙骨+水泥纤维板", thicknesses: [100, 120, 150] },
 ];
+
+// 墙体基层材料（保留兼容，用于计算引擎）
+export const WALL_MATERIALS: MaterialLayer[] = WALL_TYPES.flatMap((t) =>
+  t.thicknesses.map((th) => ({
+    id: `${t.id}_${th}`,
+    name: `${t.name} ${th}mm`,
+    lambda: t.lambda,
+    lambdaCorrection: t.lambdaCorrection,
+    lambdaCorrected: t.lambdaCorrected,
+    category: "wall" as const,
+    density: t.density,
+    description: t.description,
+  }))
+);
 
 // 保温层材料
 export const INSULATION_MATERIALS: MaterialLayer[] = [
@@ -51,32 +74,46 @@ export const PLASTER_MATERIALS: MaterialLayer[] = [
   { id: "polymer_plaster", name: "抗裂砂浆", lambda: 0.93, lambdaCorrection: 1.00, lambdaCorrected: 0.93, category: "plaster", density: 1800, description: "抹面胶浆" },
 ];
 
-// 屋面基层材料
-export const ROOF_MATERIALS: MaterialLayer[] = [
-  // 混凝土屋面
-  { id: "concrete_roof_100", name: "钢筋混凝土屋面板 100mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "roof", density: 2500, description: "现浇混凝土板" },
-  { id: "concrete_roof_120", name: "钢筋混凝土屋面板 120mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "roof", density: 2500, description: "现浇混凝土板" },
-  { id: "concrete_roof_150", name: "钢筋混凝土屋面板 150mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "roof", density: 2500, description: "现浇混凝土板" },
-  { id: "concrete_roof_180", name: "钢筋混凝土屋面板 180mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "roof", density: 2500, description: "现浇混凝土板" },
-  // 木结构屋面
-  { id: "timber_roof_50", name: "实木屋面板 50mm", lambda: 0.17, lambdaCorrection: 1.10, lambdaCorrected: 0.187, category: "roof", density: 600, description: "实木拼板屋面" },
-  { id: "timber_roof_80", name: "实木屋面板 80mm", lambda: 0.17, lambdaCorrection: 1.10, lambdaCorrected: 0.187, category: "roof", density: 600, description: "实木拼板屋面" },
-  { id: "plywood_roof_18", name: "胶合板屋面板 18mm", lambda: 0.17, lambdaCorrection: 1.10, lambdaCorrected: 0.187, category: "roof", density: 650, description: "木结构基层常用" },
-  { id: "osb_roof_18", name: "OSB定向刨花板 18mm", lambda: 0.13, lambdaCorrection: 1.10, lambdaCorrected: 0.143, category: "roof", density: 650, description: "木结构基层常用" },
-  { id: "osb_roof_25", name: "OSB定向刨花板 25mm", lambda: 0.13, lambdaCorrection: 1.10, lambdaCorrected: 0.143, category: "roof", density: 650, description: "木结构基层常用" },
-  // 钢结构屋面
-  { id: "steel_deck_50", name: "压型钢板组合楼板 50mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "roof", density: 2000, description: "钢承板+混凝土" },
-  { id: "steel_deck_80", name: "压型钢板组合楼板 80mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "roof", density: 2200, description: "钢承板+混凝土" },
-  { id: "steel_deck_100", name: "压型钢板组合楼板 100mm", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, category: "roof", density: 2400, description: "钢承板+混凝土" },
-  { id: "steel_truss_cement_20", name: "钢结构桁架+水泥纤维板 20mm", lambda: 0.35, lambdaCorrection: 1.10, lambdaCorrected: 0.385, category: "roof", density: 1400, description: "轻钢屋面系统" },
-  { id: "steel_truss_cement_30", name: "钢结构桁架+水泥纤维板 30mm", lambda: 0.35, lambdaCorrection: 1.10, lambdaCorrected: 0.385, category: "roof", density: 1400, description: "轻钢屋面系统" },
-  // 其他屋面
-  { id: "aac_roof_100", name: "加气混凝土屋面板 100mm", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, category: "roof", density: 600, description: "轻质屋面板" },
-  { id: "aac_roof_150", name: "加气混凝土屋面板 150mm", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, category: "roof", density: 600, description: "轻质屋面板" },
-  { id: "clay_tile_roof", name: "黏土瓦屋面(含挂瓦条)", lambda: 0.84, lambdaCorrection: 1.00, lambdaCorrected: 0.84, category: "roof", density: 1900, description: "坡屋面瓦系统，等效厚度约30mm" },
-  { id: "cement_tile_roof", name: "水泥瓦屋面(含挂瓦条)", lambda: 0.92, lambdaCorrection: 1.00, lambdaCorrected: 0.92, category: "roof", density: 2100, description: "坡屋面瓦系统，等效厚度约30mm" },
-  { id: "metal_roof_5", name: "金属屋面板 0.5mm(含檩条)", lambda: 58.2, lambdaCorrection: 1.00, lambdaCorrected: 58.2, category: "roof", density: 7850, description: "彩钢板/铝镁锰板，金属热阻忽略，按檩条间距折算" },
+// 屋面基层材料类型（不含厚度）
+export interface RoofType {
+  id: string;
+  name: string;
+  lambda: number;
+  lambdaCorrection: number;
+  lambdaCorrected: number;
+  density: number;
+  description: string;
+  thicknesses: number[]; // mm
+}
+
+export const ROOF_TYPES: RoofType[] = [
+  { id: "concrete_roof", name: "钢筋混凝土屋面板", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, density: 2500, description: "现浇混凝土板", thicknesses: [100, 120, 150, 180] },
+  { id: "timber_roof", name: "实木屋面板", lambda: 0.17, lambdaCorrection: 1.10, lambdaCorrected: 0.187, density: 600, description: "实木拼板屋面", thicknesses: [50, 80] },
+  { id: "plywood_roof", name: "胶合板屋面板", lambda: 0.17, lambdaCorrection: 1.10, lambdaCorrected: 0.187, density: 650, description: "木结构基层常用", thicknesses: [18] },
+  { id: "osb_roof", name: "OSB定向刨花板", lambda: 0.13, lambdaCorrection: 1.10, lambdaCorrected: 0.143, density: 650, description: "木结构基层常用", thicknesses: [18, 25] },
+  { id: "steel_deck", name: "压型钢板组合楼板", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, density: 2000, description: "钢承板+混凝土", thicknesses: [50, 80, 100] },
+  { id: "steel_truss_cement", name: "钢结构桁架+水泥纤维板", lambda: 0.35, lambdaCorrection: 1.10, lambdaCorrected: 0.385, density: 1400, description: "轻钢屋面系统", thicknesses: [20, 30] },
+  { id: "aac_roof", name: "加气混凝土屋面板", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, density: 600, description: "轻质屋面板", thicknesses: [100, 150] },
+  { id: "clay_tile_roof", name: "黏土瓦屋面(含挂瓦条)", lambda: 0.84, lambdaCorrection: 1.00, lambdaCorrected: 0.84, density: 1900, description: "坡屋面瓦系统，等效厚度约30mm", thicknesses: [30] },
+  { id: "cement_tile_roof", name: "水泥瓦屋面(含挂瓦条)", lambda: 0.92, lambdaCorrection: 1.00, lambdaCorrected: 0.92, density: 2100, description: "坡屋面瓦系统，等效厚度约30mm", thicknesses: [30] },
+  { id: "metal_roof", name: "金属屋面板(含檩条)", lambda: 58.2, lambdaCorrection: 1.00, lambdaCorrected: 58.2, density: 7850, description: "彩钢板/铝镁锰板，金属热阻忽略", thicknesses: [5] },
+  { id: "light_wood_roof", name: "轻型木结构屋顶", lambda: 0.14, lambdaCorrection: 1.10, lambdaCorrected: 0.154, density: 500, description: "木龙骨+OSB板+防水卷材", thicknesses: [120, 150, 180] },
+  { id: "light_steel_roof", name: "轻型钢结构板屋顶", lambda: 0.20, lambdaCorrection: 1.10, lambdaCorrected: 0.22, density: 800, description: "轻钢龙骨+水泥纤维板+防水", thicknesses: [100, 120, 150] },
 ];
+
+// 屋面基层材料（保留兼容，用于计算引擎）
+export const ROOF_MATERIALS: MaterialLayer[] = ROOF_TYPES.flatMap((t) =>
+  t.thicknesses.map((th) => ({
+    id: `${t.id}_${th}`,
+    name: `${t.name} ${th}mm`,
+    lambda: t.lambda,
+    lambdaCorrection: t.lambdaCorrection,
+    lambdaCorrected: t.lambdaCorrected,
+    category: "roof" as const,
+    density: t.density,
+    description: t.description,
+  }))
+);
 
 // 屋面保温层材料
 export const ROOF_INSULATION_MATERIALS: MaterialLayer[] = [

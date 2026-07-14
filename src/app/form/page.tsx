@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { CITIES, CLIMATE_ZONE_LABELS, type ClimateZone } from "@/lib/data/climate";
 import { BUILDING_TYPES, type BuildingType } from "@/lib/data/building-types";
 import {
-  WALL_MATERIALS,
+  WALL_TYPES,
   INSULATION_MATERIALS,
-  ROOF_MATERIALS,
+  ROOF_TYPES,
   ROOF_INSULATION_MATERIALS,
   WINDOW_CONFIGS,
   getInsulationThicknesses,
@@ -33,10 +33,12 @@ export default function FormPage() {
     city: "",
     climateZone: null,
     buildingType: null,
-    wallBase: "",
+    wallType: "",
+    wallThickness: 200,
     wallInsulation: "",
     wallInsulationThickness: 50,
-    roofBase: "",
+    roofType: "",
+    roofThickness: 120,
     roofInsulation: "",
     roofInsulationThickness: 50,
     windowConfig: "",
@@ -52,12 +54,14 @@ export default function FormPage() {
       case 0: return !formData.city ? "请选择城市" : "";
       case 1: return !formData.buildingType ? "请选择建筑类型" : "";
       case 2:
-        if (!formData.wallBase) return "请选择基层墙体";
+        if (!formData.wallType) return "请选择墙体类型";
+        if (!formData.wallThickness) return "请选择墙体厚度";
         if (!formData.wallInsulation) return "请选择保温层材料";
         if (formData.wallInsulation !== "none" && !formData.wallInsulationThickness) return "请选择保温层厚度";
         return "";
       case 3:
-        if (!formData.roofBase) return "请选择屋面基层";
+        if (!formData.roofType) return "请选择屋顶类型";
+        if (!formData.roofThickness) return "请选择屋顶厚度";
         if (!formData.roofInsulation) return "请选择屋面保温层材料";
         if (formData.roofInsulation !== "roof_none" && !formData.roofInsulationThickness) return "请选择保温层厚度";
         return "";
@@ -92,18 +96,20 @@ export default function FormPage() {
     const limits = getStandardLimits(zone, bType);
     const bInfo = getBuildingType(bType);
 
-    const wallBase = WALL_MATERIALS.find((m) => m.id === formData.wallBase)!;
+    const wallType = WALL_TYPES.find((t) => t.id === formData.wallType)!;
     const wallIns = INSULATION_MATERIALS.find((m) => m.id === formData.wallInsulation)!;
     const wallResult = calculateWallK({
-      baseLayer: wallBase,
+      wallType,
+      wallThickness: formData.wallThickness,
       insulationLayer: wallIns,
       insulationThickness: formData.wallInsulationThickness,
     });
 
-    const roofBase = ROOF_MATERIALS.find((m) => m.id === formData.roofBase)!;
+    const roofType = ROOF_TYPES.find((t) => t.id === formData.roofType)!;
     const roofIns = ROOF_INSULATION_MATERIALS.find((m) => m.id === formData.roofInsulation)!;
     const roofResult = calculateRoofK({
-      baseLayer: roofBase,
+      roofType,
+      roofThickness: formData.roofThickness,
       insulationLayer: roofIns,
       insulationThickness: formData.roofInsulationThickness,
     });
@@ -332,7 +338,7 @@ function StepBuildingType({ formData, updateField }: StepProps) {
 }
 
 function StepWall({ formData, updateField }: StepProps) {
-  const selectedBase = WALL_MATERIALS.find((m) => m.id === formData.wallBase);
+  const selectedType = WALL_TYPES.find((t) => t.id === formData.wallType);
   const selectedIns = INSULATION_MATERIALS.find((m) => m.id === formData.wallInsulation);
   const thicknesses = selectedIns ? getInsulationThicknesses(selectedIns.id) : [30,40,50,60,80,100];
 
@@ -340,23 +346,39 @@ function StepWall({ formData, updateField }: StepProps) {
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-bold text-slate-100 mb-1">外墙构造</h2>
-        <p className="text-xs text-slate-400">选择基层墙体和保温层材料</p>
+        <p className="text-xs text-slate-400">选择墙体类型、厚度和保温层</p>
       </div>
       <div>
-        <label className="text-xs font-medium text-slate-400 mb-2 block">基层墙体</label>
-        <div className="space-y-1.5 max-h-[22vh] overflow-y-auto">
-          {WALL_MATERIALS.map((m) => (
-            <button key={m.id} onClick={() => updateField("wallBase", m.id)}
-              className={`w-full px-3 py-2.5 rounded-lg text-left text-sm transition-all flex justify-between items-center ${formData.wallBase === m.id ? "bg-blue-500/15 border border-blue-500/40 text-blue-400" : "bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:border-slate-600"}`}>
-              <span>{m.name}</span>
-              <span className="text-xs text-slate-500 font-mono">λ={m.lambda}</span>
+        <label className="text-xs font-medium text-slate-400 mb-2 block">墙体类型</label>
+        <div className="space-y-1.5 max-h-[18vh] overflow-y-auto">
+          {WALL_TYPES.map((t) => (
+            <button key={t.id} onClick={() => { updateField("wallType", t.id); updateField("wallThickness", t.thicknesses[0]); }}
+              className={`w-full px-3 py-2.5 rounded-lg text-left text-sm transition-all flex justify-between items-center ${formData.wallType === t.id ? "bg-blue-500/15 border border-blue-500/40 text-blue-400" : "bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:border-slate-600"}`}>
+              <span>{t.name}</span>
+              <span className="text-xs text-slate-500">λ={t.lambda}</span>
             </button>
           ))}
         </div>
       </div>
+      {formData.wallType && (
+        <div>
+          <label className="text-xs font-medium text-slate-400 mb-1 block">
+            墙体厚度 <span className="text-amber-400">*</span>
+          </label>
+          <p className="text-[10px] text-slate-500 mb-2">单位: mm</p>
+          <div className="flex flex-wrap gap-2">
+            {(selectedType?.thicknesses || []).map((t) => (
+              <button key={t} onClick={() => updateField("wallThickness", t)}
+                className={`px-3 py-2 rounded-lg text-sm font-mono transition-all ${formData.wallThickness === t ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 ring-1 ring-blue-500/30" : "bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:border-slate-600"}`}>
+                {t}mm
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div>
         <label className="text-xs font-medium text-slate-400 mb-2 block">保温层材料</label>
-        <div className="space-y-1.5 max-h-[22vh] overflow-y-auto">
+        <div className="space-y-1.5 max-h-[18vh] overflow-y-auto">
           {INSULATION_MATERIALS.map((m) => (
             <button key={m.id} onClick={() => { updateField("wallInsulation", m.id); if (m.commonThicknesses) updateField("wallInsulationThickness", m.commonThicknesses[2] || 50); }}
               className={`w-full px-3 py-2.5 rounded-lg text-left text-sm transition-all flex justify-between items-center ${formData.wallInsulation === m.id ? "bg-blue-500/15 border border-blue-500/40 text-blue-400" : "bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:border-slate-600"}`}>
@@ -385,11 +407,11 @@ function StepWall({ formData, updateField }: StepProps) {
           )}
         </div>
       )}
-      {selectedBase && selectedIns && (
+      {selectedType && selectedIns && (
         <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/50">
           <p className="text-xs text-slate-400 mb-2">构造预览:</p>
           <div className="flex items-center gap-2 text-xs flex-wrap">
-            <span className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded">{selectedBase.name}</span>
+            <span className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded">{selectedType.name} {formData.wallThickness}mm</span>
             {selectedIns.id !== "none" && <>
               <span className="text-slate-600">+</span>
               <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded">{selectedIns.name} {formData.wallInsulationThickness}mm</span>
@@ -402,7 +424,7 @@ function StepWall({ formData, updateField }: StepProps) {
 }
 
 function StepRoof({ formData, updateField }: StepProps) {
-  const selectedBase = ROOF_MATERIALS.find((m) => m.id === formData.roofBase);
+  const selectedType = ROOF_TYPES.find((t) => t.id === formData.roofType);
   const selectedIns = ROOF_INSULATION_MATERIALS.find((m) => m.id === formData.roofInsulation);
   const thicknesses = selectedIns ? getInsulationThicknesses(selectedIns.id) : [40,50,60,80,100];
 
@@ -410,23 +432,39 @@ function StepRoof({ formData, updateField }: StepProps) {
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-bold text-slate-100 mb-1">屋面构造</h2>
-        <p className="text-xs text-slate-400">选择屋面基层和保温层材料</p>
+        <p className="text-xs text-slate-400">选择屋顶类型、厚度和保温层</p>
       </div>
       <div>
-        <label className="text-xs font-medium text-slate-400 mb-2 block">屋面基层</label>
-        <div className="space-y-1.5">
-          {ROOF_MATERIALS.map((m) => (
-            <button key={m.id} onClick={() => updateField("roofBase", m.id)}
-              className={`w-full px-3 py-2.5 rounded-lg text-left text-sm transition-all flex justify-between items-center ${formData.roofBase === m.id ? "bg-blue-500/15 border border-blue-500/40 text-blue-400" : "bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:border-slate-600"}`}>
-              <span>{m.name}</span>
-              <span className="text-xs text-slate-500 font-mono">λ={m.lambda}</span>
+        <label className="text-xs font-medium text-slate-400 mb-2 block">屋顶类型</label>
+        <div className="space-y-1.5 max-h-[18vh] overflow-y-auto">
+          {ROOF_TYPES.map((t) => (
+            <button key={t.id} onClick={() => { updateField("roofType", t.id); updateField("roofThickness", t.thicknesses[0]); }}
+              className={`w-full px-3 py-2.5 rounded-lg text-left text-sm transition-all flex justify-between items-center ${formData.roofType === t.id ? "bg-blue-500/15 border border-blue-500/40 text-blue-400" : "bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:border-slate-600"}`}>
+              <span>{t.name}</span>
+              <span className="text-xs text-slate-500">λ={t.lambda}</span>
             </button>
           ))}
         </div>
       </div>
+      {formData.roofType && (
+        <div>
+          <label className="text-xs font-medium text-slate-400 mb-1 block">
+            屋顶厚度 <span className="text-amber-400">*</span>
+          </label>
+          <p className="text-[10px] text-slate-500 mb-2">单位: mm</p>
+          <div className="flex flex-wrap gap-2">
+            {(selectedType?.thicknesses || []).map((t) => (
+              <button key={t} onClick={() => updateField("roofThickness", t)}
+                className={`px-3 py-2 rounded-lg text-sm font-mono transition-all ${formData.roofThickness === t ? "bg-blue-500/20 text-blue-400 border border-blue-500/40 ring-1 ring-blue-500/30" : "bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:border-slate-600"}`}>
+                {t}mm
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div>
         <label className="text-xs font-medium text-slate-400 mb-2 block">屋面保温层</label>
-        <div className="space-y-1.5 max-h-[22vh] overflow-y-auto">
+        <div className="space-y-1.5 max-h-[18vh] overflow-y-auto">
           {ROOF_INSULATION_MATERIALS.map((m) => (
             <button key={m.id} onClick={() => { updateField("roofInsulation", m.id); if (m.commonThicknesses) updateField("roofInsulationThickness", m.commonThicknesses[2] || 50); }}
               className={`w-full px-3 py-2.5 rounded-lg text-left text-sm transition-all flex justify-between items-center ${formData.roofInsulation === m.id ? "bg-blue-500/15 border border-blue-500/40 text-blue-400" : "bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:border-slate-600"}`}>
@@ -455,11 +493,11 @@ function StepRoof({ formData, updateField }: StepProps) {
           )}
         </div>
       )}
-      {selectedBase && selectedIns && (
+      {selectedType && selectedIns && (
         <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/50">
           <p className="text-xs text-slate-400 mb-2">构造预览:</p>
           <div className="flex items-center gap-2 text-xs flex-wrap">
-            <span className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded">{selectedBase.name}</span>
+            <span className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded">{selectedType.name} {formData.roofThickness}mm</span>
             {selectedIns.id !== "roof_none" && <>
               <span className="text-slate-600">+</span>
               <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded">{selectedIns.name} {formData.roofInsulationThickness}mm</span>

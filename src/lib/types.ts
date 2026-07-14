@@ -12,12 +12,14 @@ export interface FormData {
   buildingType: BuildingType | null;
 
   // Step 3: 外墙构造
-  wallBase: string; // 基层材料ID
+  wallType: string; // 墙体类型ID
+  wallThickness: number; // mm
   wallInsulation: string; // 保温材料ID
   wallInsulationThickness: number; // mm
 
   // Step 4: 屋面构造
-  roofBase: string; // 基层材料ID
+  roofType: string; // 屋顶类型ID
+  roofThickness: number; // mm
   roofInsulation: string; // 保温材料ID
   roofInsulationThickness: number; // mm
 
@@ -29,10 +31,12 @@ export const INITIAL_FORM_DATA: FormData = {
   city: "",
   climateZone: null,
   buildingType: null,
-  wallBase: "",
+  wallType: "",
+  wallThickness: 200,
   wallInsulation: "",
   wallInsulationThickness: 50,
-  roofBase: "",
+  roofType: "",
+  roofThickness: 120,
   roofInsulation: "",
   roofInsulationThickness: 50,
   windowConfig: "",

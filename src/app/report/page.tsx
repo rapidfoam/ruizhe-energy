@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 // html2canvas and html2pdf.js are dynamically imported to avoid SSR issues
 import { CLIMATE_ZONE_LABELS, type ClimateZone } from "@/lib/data/climate";
 import { BUILDING_TYPES } from "@/lib/data/building-types";
-import { WINDOW_CONFIGS, WALL_MATERIALS, INSULATION_MATERIALS, ROOF_MATERIALS, ROOF_INSULATION_MATERIALS } from "@/lib/data/materials";
+import { WINDOW_CONFIGS, WALL_TYPES, INSULATION_MATERIALS, ROOF_TYPES, ROOF_INSULATION_MATERIALS } from "@/lib/data/materials";
 import type { FormData, EvaluationResult } from "@/lib/types";
 
 export default function ReportPage() {
@@ -59,15 +59,15 @@ export default function ReportPage() {
     if (!formData || !result || !phone) return;
     
     try {
-      const wallBaseName = WALL_MATERIALS.find(m => m.id === formData.wallBase)?.name || formData.wallBase || '';
+      const wallTypeName = WALL_TYPES.find(t => t.id === formData.wallType)?.name || formData.wallType || '';
       const wallInsulationName = INSULATION_MATERIALS.find(m => m.id === formData.wallInsulation)?.name || formData.wallInsulation || '';
-      const wallConstruction = wallBaseName && wallInsulationName
-        ? `${wallBaseName} + ${wallInsulationName} ${formData.wallInsulationThickness || 0}mm`
+      const wallConstruction = wallTypeName && wallInsulationName
+        ? `${wallTypeName} ${formData.wallThickness || 0}mm + ${wallInsulationName} ${formData.wallInsulationThickness || 0}mm`
         : "-";
-      const roofBaseName = ROOF_MATERIALS.find(m => m.id === formData.roofBase)?.name || formData.roofBase || '';
+      const roofTypeName = ROOF_TYPES.find(t => t.id === formData.roofType)?.name || formData.roofType || '';
       const roofInsulationName = ROOF_INSULATION_MATERIALS.find(m => m.id === formData.roofInsulation)?.name || formData.roofInsulation || '';
-      const roofConstruction = roofBaseName && roofInsulationName
-        ? `${roofBaseName} + ${roofInsulationName} ${formData.roofInsulationThickness || 0}mm`
+      const roofConstruction = roofTypeName && roofInsulationName
+        ? `${roofTypeName} ${formData.roofThickness || 0}mm + ${roofInsulationName} ${formData.roofInsulationThickness || 0}mm`
         : "-";
       const windowTypeName = WINDOW_CONFIGS.find(w => w.id === formData.windowConfig)?.name || formData.windowConfig || '';
 

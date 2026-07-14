@@ -33,8 +33,8 @@ export const WALL_TYPES: WallType[] = [
   { id: "aerated_concrete_block", name: "加气混凝土砌块", lambda: 0.19, lambdaCorrection: 1.25, lambdaCorrected: 0.238, density: 600, description: "B06级", thicknesses: [200, 250, 300] },
   { id: "concrete_shear_wall", name: "钢筋混凝土剪力墙", lambda: 1.74, lambdaCorrection: 1.00, lambdaCorrected: 1.74, density: 2500, description: "现浇混凝土", thicknesses: [200, 250] },
   { id: "hollow_concrete_block", name: "混凝土空心砌块", lambda: 0.80, lambdaCorrection: 1.00, lambdaCorrected: 0.80, density: 1500, description: "空心砌块", thicknesses: [190] },
-  { id: "light_wood_wall", name: "轻型木结构墙体", lambda: 0.14, lambdaCorrection: 1.10, lambdaCorrected: 0.154, density: 500, description: "木龙骨+OSB板+石膏板", thicknesses: [90, 120, 140] },
-  { id: "light_steel_wall", name: "轻型钢结构板墙体", lambda: 0.20, lambdaCorrection: 1.10, lambdaCorrected: 0.22, density: 800, description: "轻钢龙骨+水泥纤维板", thicknesses: [100, 120, 150] },
+  { id: "light_wood_wall", name: "轻型木结构墙体", lambda: 0.14, lambdaCorrection: 1.10, lambdaCorrected: 0.154, density: 500, description: "木龙骨+OSB板+石膏板", thicknesses: [120] },
+  { id: "light_steel_wall", name: "轻型钢结构板墙体", lambda: 0.20, lambdaCorrection: 1.10, lambdaCorrected: 0.22, density: 800, description: "轻钢龙骨+水泥纤维板", thicknesses: [170] },
 ];
 
 // 墙体基层材料（保留兼容，用于计算引擎）

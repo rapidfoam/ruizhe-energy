@@ -90,6 +90,7 @@ export interface FeishuAssessmentData {
   wallConstruction?: string;
   roofConstruction?: string;
   windowType?: string;
+  referralSource?: string;
 }
 
 /**
@@ -158,6 +159,7 @@ function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
     '墙体构造': data.wallConstruction || '-',
     '屋面构造': data.roofConstruction || '-',
     '窗户类型': data.windowType || '-',
+    '推荐来源': data.referralSource || '',
   };
 
   // 调试日志：打印原始数据和转换后的字段

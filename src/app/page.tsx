@@ -1,8 +1,55 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
+const REFERRAL_KEY = "ruizhu_referral_source";
+const REFERRAL_TIME_KEY = "ruizhu_referral_time";
+const REFERRAL_EXPIRY_DAYS = 7;
+
+function getReferralSource(): string | null {
+  if (typeof window === "undefined") return null;
+  const source = localStorage.getItem(REFERRAL_KEY);
+  const timeStr = localStorage.getItem(REFERRAL_TIME_KEY);
+  if (!source || !timeStr) return null;
+  const time = parseInt(timeStr, 10);
+  if (isNaN(time)) return null;
+  const now = Date.now();
+  const expiryMs = REFERRAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+  if (now - time > expiryMs) {
+    localStorage.removeItem(REFERRAL_KEY);
+    localStorage.removeItem(REFERRAL_TIME_KEY);
+    return null;
+  }
+  return source;
+}
+
 export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
+  const [referralSource, setReferralSource] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    // 检查 URL 参数 ?from=xxx
+    const params = new URLSearchParams(window.location.search);
+    const fromParam = params.get("from");
+    if (fromParam) {
+      // 只在没有有效来源时才写入（首次来源优先）
+      const existing = getReferralSource();
+      if (!existing) {
+        localStorage.setItem(REFERRAL_KEY, fromParam);
+        localStorage.setItem(REFERRAL_TIME_KEY, Date.now().toString());
+        setReferralSource(fromParam);
+      } else {
+        setReferralSource(existing);
+      }
+    } else {
+      setReferralSource(getReferralSource());
+    }
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
       {/* Logo */}

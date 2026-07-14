@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       wallConstruction: body.wallConstruction || '',
       roofConstruction: body.roofConstruction || '',
       windowType: body.windowType || '',
+      referralSource: body.referralSource || '',
     });
 
     // 无论飞书写入成功与否，都返回 success: true

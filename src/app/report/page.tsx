@@ -71,6 +71,9 @@ export default function ReportPage() {
         : "-";
       const windowTypeName = WINDOW_CONFIGS.find(w => w.id === formData.windowConfig)?.name || formData.windowConfig || '';
 
+      // 读取推广来源
+      const referralSource = localStorage.getItem('ruizhu_referral_source') || '';
+
       const feishuData = {
         city: formData.city || '',
         climateZone: formData.climateZone || '',
@@ -90,6 +93,7 @@ export default function ReportPage() {
         wallConstruction,
         roofConstruction,
         windowType: windowTypeName,
+        referralSource,
       };
 
       console.info('[Feishu] 自动写入数据:', feishuData);

@@ -26,7 +26,6 @@ function getReferralSource(): string | null {
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
-  const [referralSource, setReferralSource] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -39,88 +38,138 @@ export default function HomePage() {
       if (!existing) {
         localStorage.setItem(REFERRAL_KEY, fromParam);
         localStorage.setItem(REFERRAL_TIME_KEY, Date.now().toString());
-        setReferralSource(fromParam);
-      } else {
-        setReferralSource(existing);
       }
-    } else {
-      setReferralSource(getReferralSource());
     }
   }, []);
 
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
-      {/* Logo */}
-      <div className="animate-fade-in mb-6">
-        <img src="/logo.png" alt="睿筑建筑节能评估" className="h-20 w-auto" />
-      </div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-blue-50/30">
+      {/* 顶部标题区 */}
+      <header className="pt-12 pb-8 px-4 text-center">
+        <h1 className="text-4xl md:text-5xl font-bold text-[#1A3A5C] mb-3 tracking-tight">
+          睿筑·建筑评估
+        </h1>
+        <p className="text-lg md:text-xl text-slate-600 mb-2">
+          每栋房子都值得被评估
+        </p>
+        <p className="text-sm text-slate-500">
+          依据国家标准 · 免费评估 · 3分钟出结果
+        </p>
+      </header>
 
-      {/* Header badge */}
-      <div className="animate-fade-in mb-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-          GB 50176 / JGJ 26 标准
-        </div>
-      </div>
-
-      {/* Main title */}
-      <h1 className="animate-fade-in text-3xl font-bold text-center mb-3 tracking-tight">
-        <span className="text-slate-100">睿筑</span>
-        <span className="text-blue-400">建筑节能评估</span>
-      </h1>
-
-      <p className="animate-fade-in text-slate-400 text-sm text-center max-w-xs mb-8 leading-relaxed">
-        基于围护结构传热系数K值计算，自动对比国家节能标准限值，生成专业评估报告
-      </p>
-
-      {/* Feature list */}
-      <div className="animate-fade-in w-full max-w-sm mb-8 space-y-3">
-        {[
-          { icon: "01", text: "城市气候分区自动匹配" },
-          { icon: "02", text: "K值精确计算引擎" },
-          { icon: "03", text: "逐项达标判定分析" },
-          { icon: "04", text: "热损失分布估算" },
-          { icon: "05", text: "综合评级与详细报告" },
-        ].map((item) => (
-          <div
-            key={item.icon}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-800/60 border border-slate-700/50"
+      {/* 工具卡片区 */}
+      <main className="flex-1 px-4 pb-8 max-w-4xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 筑能卡片 */}
+          <Link
+            href="/form"
+            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 overflow-hidden"
           >
-            <span className="text-xs font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
-              {item.icon}
-            </span>
-            <span className="text-sm text-slate-300">{item.text}</span>
+            <div className="p-8">
+              {/* 图标 */}
+              <div className="text-5xl mb-4">🏠</div>
+
+              {/* 标题 */}
+              <h2 className="text-2xl font-bold text-[#1A3A5C] mb-2">
+                筑能 · 建筑节能评估
+              </h2>
+
+              {/* 描述 */}
+              <p className="text-slate-600 mb-4">
+                3分钟评估你的房子保温达标吗
+              </p>
+
+              {/* 依据 */}
+              <p className="text-xs text-slate-500 mb-6 font-mono">
+                依据：GB 55015-2021
+              </p>
+
+              {/* 标签 */}
+              <div className="flex gap-2 mb-6">
+                <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-medium">
+                  免费
+                </span>
+                <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
+                  3分钟
+                </span>
+                <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-medium">
+                  国标对标
+                </span>
+              </div>
+
+              {/* 按钮 */}
+              <button className="w-full py-3 rounded-xl bg-[#1A3A5C] text-white font-medium hover:bg-[#244a70] transition-colors">
+                开始评估
+              </button>
+            </div>
+          </Link>
+
+          {/* 筑静卡片 */}
+          <div className="relative bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden opacity-90">
+            {/* 即将上线角标 */}
+            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+              即将上线
+            </div>
+
+            <div className="p-8">
+              {/* 图标 */}
+              <div className="text-5xl mb-4">🔇</div>
+
+              {/* 标题 */}
+              <h2 className="text-2xl font-bold text-[#1A3A5C] mb-2">
+                筑静 · 建筑隔音评估
+              </h2>
+
+              {/* 描述 */}
+              <p className="text-slate-600 mb-4">
+                3分钟评估你的房子隔音达标吗
+              </p>
+
+              {/* 依据 */}
+              <p className="text-xs text-slate-500 mb-6 font-mono">
+                依据：GB 50118-2010
+              </p>
+
+              {/* 标签 */}
+              <div className="flex gap-2 mb-6">
+                <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-medium">
+                  免费
+                </span>
+                <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
+                  3分钟
+                </span>
+                <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-medium">
+                  国标对标
+                </span>
+              </div>
+
+              {/* 按钮 */}
+              <button
+                disabled
+                className="w-full py-3 rounded-xl bg-slate-200 text-slate-500 font-medium cursor-not-allowed"
+              >
+                即将上线
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      </main>
 
-      {/* CTA button */}
-      <Link
-        href="/form"
-        className="animate-fade-in w-full max-w-sm block text-center px-6 py-3.5 bg-blue-500 hover:bg-blue-400 text-white font-medium rounded-lg transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
-      >
-        开始评估
-      </Link>
-
-      {/* Footer */}
-      <div className="animate-fade-in mt-12 text-center">
-        <p className="text-xs text-slate-500">
-          评估依据: GB 50176-2016 / JGJ 26-2018 / GB 50189-2015
-        </p>
-        <p className="text-xs text-slate-600 mt-1">
-          仅供参考，不作为正式设计依据
-        </p>
-        {/* Admin entry - subtle link */}
-        <Link href="/admin" className="inline-flex items-center gap-1 mt-4 text-[10px] text-slate-700 hover:text-slate-500 transition-colors">
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          管理
+      {/* 底部 */}
+      <footer className="pb-8 pt-4 px-4 text-center">
+        <Link
+          href="/certify"
+          className="inline-flex items-center gap-1 text-sm text-[#1A3A5C] hover:text-blue-600 transition-colors mb-4"
+        >
+          评估达标？申请睿筑官方认证
+          <span>→</span>
         </Link>
-      </div>
+        <p className="text-xs text-slate-400">
+          © 2026 睿筑·建筑评估
+        </p>
+      </footer>
     </div>
   );
 }

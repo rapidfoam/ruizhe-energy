@@ -8,8 +8,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "睿筑建筑节能评估",
-  description: "专业建筑围护结构节能评估，自动计算K值并对比国家标准限值",
+  title: "睿筑·建筑评估 - 免费国标对标评估工具",
+  description: "依据GB 55015-2021和GB 50118-2010，3分钟免费评估建筑节能和隔音水平，A级可申请官方认证",
 };
 
 export default function RootLayout({

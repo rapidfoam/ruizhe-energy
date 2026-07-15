@@ -241,6 +241,98 @@ export async function writeAssessmentToFeishu(
   }
 }
 
+// ==================== 认证记录写入 ====================
+
+export interface FeishuCertificationData {
+  certNo: string;
+  certType: string;
+  address: string;
+  area: number;
+  city: string;
+  buildingType: string;
+  applicantName: string;
+  phone: string;
+  wallK: number;
+  roofK: number;
+  windowK: number;
+  wallLimit: number;
+  roofLimit: number;
+  windowLimit: number;
+  paymentStatus?: string;
+}
+
+function buildCertFields(data: FeishuCertificationData): Record<string, unknown> {
+  return {
+    '证书编号': data.certNo,
+    '认证类型': data.certType,
+    '房屋地址': data.address,
+    '建筑面积': String(data.area),
+    '所在地区': data.city,
+    '建筑类型': data.buildingType,
+    '申请人姓名': data.applicantName,
+    '手机号': data.phone,
+    '外墙K值': String(data.wallK),
+    '屋面K值': String(data.roofK),
+    '外窗K值': String(data.windowK),
+    '外墙限值': String(data.wallLimit),
+    '屋面限值': String(data.roofLimit),
+    '外窗限值': String(data.windowLimit),
+    '支付状态': data.paymentStatus || '待支付',
+    '申请时间': new Date().toLocaleString('zh-CN'),
+    '发证时间': '',
+  };
+}
+
+export async function writeCertification(
+  data: FeishuCertificationData
+): Promise<{ success: boolean; recordId?: string; error?: string }> {
+  const token = await getTenantAccessToken();
+  if (!token) {
+    console.warn('[Feishu] tenant_access_token 获取失败，认证记录跳过写入');
+    return { success: false, error: 'token_failed' };
+  }
+
+  const appToken = process.env.FEISHU_TABLE_APP_TOKEN || '';
+  const tableId = process.env.NEXT_PUBLIC_FEISHU_CERT_TABLE_ID || 'tbl8IuarwOjEUSyU';
+
+  if (!appToken) {
+    console.warn('[Feishu] FEISHU_TABLE_APP_TOKEN 未配置，认证记录跳过写入');
+    return { success: false, error: 'no_config' };
+  }
+
+  const fields = buildCertFields(data);
+  console.info('[Feishu] 认证记录写入字段:', JSON.stringify(fields));
+
+  const url = `https://open.feishu.cn/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`;
+
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify({
+        records: [{ fields }],
+      }),
+    });
+
+    const json = await resp.json();
+
+    if (json.code === 0 && json.data?.records?.length > 0) {
+      const recordId = json.data.records[0].record_id;
+      console.info('[Feishu] 认证记录写入成功:', recordId);
+      return { success: true, recordId };
+    } else {
+      console.error('[Feishu] 认证记录写入失败:', json.code, json.msg);
+      return { success: false, error: json.msg || 'unknown' };
+    }
+  } catch (err) {
+    console.error('[Feishu] 认证记录写入异常:', err);
+    return { success: false, error: 'network_error' };
+  }
+}
+
 /**
  * 更新已有记录的手机号字段
  */

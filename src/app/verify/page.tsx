@@ -1,96 +1,106 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-// Mock证书数据（MVP阶段，后续接飞书API）
-const MOCK_CERTIFICATES: Record<string, {
-  id: string;
-  type: string;
-  typeName: string;
+interface CertData {
+  certNo: string;
+  certType: string;
   address: string;
+  area: string;
+  city: string;
+  buildingType: string;
+  applicantName: string;
+  phone: string;
+  wallK: string;
+  roofK: string;
+  windowK: string;
+  wallLimit: string;
+  roofLimit: string;
+  windowLimit: string;
+  paymentStatus: string;
   issueDate: string;
-  wallK: number;
-  roofK: number;
-  windowK: number;
-  score: number;
-}> = {
-  "RZ-NE-2026-10001": {
-    id: "RZ-NE-2026-10001",
-    type: "energy",
-    typeName: "筑能·建筑节能认证",
-    address: "上海市浦东新区张江高科技园区XX小区3栋502室",
-    issueDate: "2026-07-10",
-    wallK: 0.48,
-    roofK: 0.35,
-    windowK: 2.2,
-    score: 95,
-  },
-  "RZ-NE-2026-10002": {
-    id: "RZ-NE-2026-10002",
-    type: "energy",
-    typeName: "筑能·建筑节能认证",
-    address: "北京市朝阳区望京SOHO T1-1205",
-    issueDate: "2026-07-08",
-    wallK: 0.52,
-    roofK: 0.38,
-    windowK: 2.5,
-    score: 92,
-  },
-  "RZ-AC-2026-10001": {
-    id: "RZ-AC-2026-10001",
-    type: "acoustic",
-    typeName: "筑静·建筑隔音认证",
-    address: "广州市天河区珠江新城XX花园8栋1201",
-    issueDate: "2026-07-05",
-    wallK: 0,
-    roofK: 0,
-    windowK: 0,
-    score: 88,
-  },
-};
+}
 
-type QueryState = 'idle' | 'valid' | 'invalid';
+type QueryState = 'idle' | 'valid' | 'invalid' | 'loading';
 
 export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
+  );
+}
+
+function VerifyContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [certId, setCertId] = useState("");
   const [queryState, setQueryState] = useState<QueryState>('idle');
-  const [result, setResult] = useState<typeof MOCK_CERTIFICATES[string] | null>(null);
+  const [result, setResult] = useState<CertData | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleVerify = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setQueryState('idle');
+  // Support URL parameter pre-fill: /verify?id=RZ-NE-2026-XXXXX
+  useEffect(() => {
+    const idParam = searchParams.get('id');
+    if (idParam && /^RZ-(NE|AC)-\d{4}-\d{5}$/.test(idParam)) {
+      setCertId(idParam);
+      // Auto-trigger query
+      setTimeout(() => {
+        doVerify(idParam);
+      }, 300);
+    }
+  }, [searchParams]);
 
-    // 模拟API查询延迟
-    setTimeout(() => {
-      const cert = MOCK_CERTIFICATES[certId.trim()];
-      if (cert) {
-        setResult(cert);
+  const doVerify = async (certNo: string) => {
+    setLoading(true);
+    setQueryState('loading');
+
+    try {
+      const response = await fetch(`/api/verify?certNo=${encodeURIComponent(certNo)}`);
+      const data = await response.json();
+
+      if (data.success && data.cert) {
+        setResult(data.cert);
         setQueryState('valid');
       } else {
         setQueryState('invalid');
       }
+    } catch (err) {
+      console.error('Verify error:', err);
+      setQueryState('invalid');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
-  // 编号格式校验
+  const handleVerify = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!certId || !isValidFormat) return;
+    doVerify(certId);
+  };
+
+  // Format validation
   const isValidFormat = /^RZ-(NE|AC)-\d{4}-\d{5}$/.test(certId);
+
+  // Check if certification is valid (issued)
+  const isIssued = result?.paymentStatus === '已发证' || result?.paymentStatus === '已支付';
 
   return (
     <div className="min-h-screen bg-slate-900 p-4 pb-8">
       <div className="max-w-lg mx-auto">
-        {/* 头部 */}
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">🔍</div>
           <h1 className="text-2xl font-bold text-slate-100 mb-1">睿筑认证查询</h1>
           <p className="text-xs text-slate-500">输入证书编号，验证认证真伪</p>
         </div>
 
-        {/* 查询表单 */}
+        {/* Query form */}
         <form onSubmit={handleVerify} className="mb-8">
           <div className="relative">
             <input
@@ -119,54 +129,90 @@ export default function VerifyPage() {
           )}
         </form>
 
-        {/* 查询结果 */}
+        {/* Loading state */}
+        {queryState === 'loading' && (
+          <div className="text-center py-8">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-xs text-slate-500">正在查询...</p>
+          </div>
+        )}
+
+        {/* Valid result */}
         {queryState === 'valid' && result && (
-          <div className="rounded-xl bg-emerald-900/20 border border-emerald-700/30 p-5 animate-fade-in">
+          <div className={`rounded-xl border p-5 ${
+            isIssued 
+              ? 'bg-emerald-900/20 border-emerald-700/30' 
+              : 'bg-blue-900/20 border-blue-700/30'
+          }`}>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">✅</span>
+              <span className="text-2xl">{isIssued ? '✅' : '📋'}</span>
               <div>
-                <h2 className="text-sm font-bold text-emerald-400">认证有效</h2>
-                <p className="text-xs text-slate-500">该证书真实有效</p>
+                <h2 className={`text-sm font-bold ${isIssued ? 'text-emerald-400' : 'text-blue-400'}`}>
+                  {isIssued ? '认证有效' : '审核中'}
+                </h2>
+                <p className="text-xs text-slate-500">
+                  {isIssued ? '该证书真实有效' : '认证申请正在审核中'}
+                </p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-2 border-b border-slate-700/50">
                 <span className="text-slate-500">证书编号</span>
-                <span className="text-slate-200 font-mono">{result.id}</span>
+                <span className="text-slate-200 font-mono">{result.certNo}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-700/50">
-                <span className="text-slate-500">认证名称</span>
-                <span className="text-slate-200">{result.typeName}</span>
+                <span className="text-slate-500">认证类型</span>
+                <span className="text-slate-200">{result.certType}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-700/50">
                 <span className="text-slate-500">房屋地址</span>
                 <span className="text-slate-200 text-right max-w-[60%]">{result.address}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-700/50">
-                <span className="text-slate-500">颁发日期</span>
-                <span className="text-slate-200">{result.issueDate}</span>
+                <span className="text-slate-500">所在地区</span>
+                <span className="text-slate-200">{result.city}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-700/50">
-                <span className="text-slate-500">综合评分</span>
-                <span className="text-amber-400 font-bold">{result.score}分</span>
+                <span className="text-slate-500">建筑面积</span>
+                <span className="text-slate-200">{result.area} ㎡</span>
               </div>
+              <div className="flex justify-between py-2 border-b border-slate-700/50">
+                <span className="text-slate-500">建筑类型</span>
+                <span className="text-slate-200">{result.buildingType}</span>
+              </div>
+              {result.issueDate && (
+                <div className="flex justify-between py-2 border-b border-slate-700/50">
+                  <span className="text-slate-500">发证日期</span>
+                  <span className="text-slate-200">{result.issueDate}</span>
+                </div>
+              )}
 
-              {result.type === 'energy' && (
-                <div className="pt-2">
-                  <p className="text-slate-500 mb-2">评估数据摘要</p>
+              {/* Energy assessment data */}
+              {result.certType.includes('筑能') && result.wallK && (
+                <div className="pt-3">
+                  <p className="text-slate-500 mb-2 font-medium">评估数据</p>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="p-2 rounded bg-slate-800/50 text-center">
                       <p className="text-slate-500 text-[10px]">外墙K值</p>
                       <p className="text-slate-200 font-mono text-xs">{result.wallK}</p>
+                      {result.wallLimit && (
+                        <p className="text-emerald-500 text-[10px]">≤{result.wallLimit}</p>
+                      )}
                     </div>
                     <div className="p-2 rounded bg-slate-800/50 text-center">
                       <p className="text-slate-500 text-[10px]">屋面K值</p>
                       <p className="text-slate-200 font-mono text-xs">{result.roofK}</p>
+                      {result.roofLimit && (
+                        <p className="text-emerald-500 text-[10px]">≤{result.roofLimit}</p>
+                      )}
                     </div>
                     <div className="p-2 rounded bg-slate-800/50 text-center">
                       <p className="text-slate-500 text-[10px]">外窗K值</p>
                       <p className="text-slate-200 font-mono text-xs">{result.windowK}</p>
+                      {result.windowLimit && (
+                        <p className="text-emerald-500 text-[10px]">≤{result.windowLimit}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -181,10 +227,11 @@ export default function VerifyPage() {
           </div>
         )}
 
+        {/* Invalid result */}
         {queryState === 'invalid' && (
-          <div className="rounded-xl bg-red-900/20 border border-red-700/30 p-5 animate-fade-in">
+          <div className="rounded-xl bg-red-900/20 border border-red-700/30 p-5">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl"></span>
+              <span className="text-2xl">❌</span>
               <div>
                 <h2 className="text-sm font-bold text-red-400">未查询到该证书</h2>
                 <p className="text-xs text-slate-500">请核对编号后重试</p>
@@ -193,6 +240,7 @@ export default function VerifyPage() {
           </div>
         )}
 
+        {/* Idle state */}
         {queryState === 'idle' && !loading && (
           <div className="text-center py-8">
             <p className="text-xs text-slate-600">
@@ -204,7 +252,7 @@ export default function VerifyPage() {
           </div>
         )}
 
-        {/* 底部链接 */}
+        {/* Bottom links */}
         <div className="mt-8 text-center space-y-2">
           <button
             onClick={() => router.push('/')}

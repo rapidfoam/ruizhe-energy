@@ -22,10 +22,15 @@ interface AssessmentResult {
   timestamp: string;
 }
 
+type Step = 'form' | 'payment' | 'result';
+
 export default function CertifyPage() {
   const router = useRouter();
   const [assessment, setAssessment] = useState<AssessmentResult | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState<Step>('form');
+  const [submitting, setSubmitting] = useState(false);
+  const [certNo, setCertNo] = useState('');
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     address: '',
     area: '',
@@ -35,14 +40,12 @@ export default function CertifyPage() {
   });
 
   useEffect(() => {
-    // 读取评估结果
     const resultStr = localStorage.getItem('ruizhu_assessment_result');
     if (resultStr) {
       try {
         const result = JSON.parse(resultStr);
         if (result.grade === 'A') {
           setAssessment(result);
-          // 自动填充手机号
           const phone = sessionStorage.getItem('userPhone') || '';
           setFormData(prev => ({ ...prev, phone }));
         }
@@ -52,11 +55,56 @@ export default function CertifyPage() {
     }
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 提交到飞书或后端API
-    console.log('Certification application:', { assessment, formData });
-    setSubmitted(true);
+    if (!formData.address || !formData.area || !formData.name || !formData.agreed) {
+      setError('请填写所有必填项并勾选确认声明');
+      return;
+    }
+    setError('');
+    setStep('payment');
+  };
+
+  const handlePaymentComplete = async () => {
+    if (!assessment) return;
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/certify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          certType: assessment.type,
+          address: formData.address,
+          area: formData.area,
+          city: assessment.city,
+          buildingType: assessment.buildingType,
+          applicantName: formData.name,
+          phone: formData.phone,
+          wallK: assessment.wallK,
+          roofK: assessment.roofK,
+          windowK: assessment.windowK,
+          wallLimit: assessment.wallLimit,
+          roofLimit: assessment.roofLimit,
+          windowLimit: assessment.windowLimit,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCertNo(data.certNo);
+        setStep('result');
+      } else {
+        setError(data.error || '提交失败，请稍后重试');
+      }
+    } catch (err) {
+      console.error('Submit error:', err);
+      setError('网络错误，请检查网络后重试');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!assessment) {
@@ -77,41 +125,152 @@ export default function CertifyPage() {
     );
   }
 
-  if (submitted) {
+  // Step 3: Result page
+  if (step === 'result') {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
+        <div className="text-center max-w-md w-full">
           <div className="text-6xl mb-4">🎉</div>
           <h1 className="text-xl font-bold text-slate-200 mb-2">认证申请已提交</h1>
           <p className="text-sm text-slate-400 mb-6">
             我们将在24小时内审核并发送证书至您的手机
           </p>
-          <div className="p-4 rounded-lg bg-slate-800 border border-slate-700 text-left text-xs text-slate-400 space-y-1">
-            <p>证书编号：RZ-NE-2026-{Math.floor(10000 + Math.random() * 90000)}</p>
-            <p>审核状态：待审核</p>
-            <p>预计完成：24小时内</p>
+          <div className="p-5 rounded-xl bg-slate-800 border border-slate-700 text-left space-y-3 mb-6">
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-slate-500">证书编号</span>
+              <span className="text-sm text-amber-400 font-mono font-bold">{certNo}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-slate-500">审核状态</span>
+              <span className="text-xs text-blue-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                审核中
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-slate-500">预计发证</span>
+              <span className="text-xs text-slate-300">24小时内</span>
+            </div>
           </div>
-          <button
-            onClick={() => router.push('/')}
-            className="mt-6 px-6 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors"
-          >
-            返回首页
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push(`/verify?id=${certNo}`)}
+              className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
+            >
+              查看证书验证
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="w-full py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium text-sm transition-colors"
+            >
+              返回首页
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Step 2: Payment confirmation
+  if (step === 'payment') {
+    return (
+      <div className="min-h-screen bg-slate-900 p-4 pb-8">
+        <div className="max-w-lg mx-auto">
+          {/* Back button */}
+          <button
+            onClick={() => setStep('form')}
+            className="text-sm text-slate-400 hover:text-slate-200 mb-4 flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            返回修改
+          </button>
+
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-slate-100 mb-1">确认支付</h1>
+            <p className="text-xs text-slate-500">请扫码完成支付</p>
+          </div>
+
+          {/* Order summary */}
+          <div className="p-4 rounded-xl bg-slate-800 border border-slate-700 mb-6">
+            <h2 className="text-sm font-bold text-slate-300 mb-3">订单摘要</h2>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">认证类型</span>
+                <span className="text-slate-200">筑能·建筑节能评估</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">房屋地址</span>
+                <span className="text-slate-200 text-right max-w-[60%]">{formData.address}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">评级</span>
+                <span className="text-amber-400 font-bold">A级（优秀）</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Price */}
+          <div className="text-center mb-6">
+            <p className="text-xs text-slate-500 mb-1">认证费用</p>
+            <p className="text-4xl font-bold text-amber-500">¥99</p>
+          </div>
+
+          {/* QR Code */}
+          <div className="bg-white rounded-xl p-6 mb-6 mx-auto max-w-[280px]">
+            <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-3">
+              <div className="text-center">
+                <div className="text-6xl mb-2">📱</div>
+                <p className="text-xs text-gray-500">微信收款码</p>
+                <p className="text-[10px] text-gray-400">（占位图，后续替换）</p>
+              </div>
+            </div>
+            <p className="text-center text-xs text-gray-600">请使用微信扫码支付 ¥99</p>
+          </div>
+
+          {/* Instructions */}
+          <div className="text-center mb-6">
+            <p className="text-sm text-slate-300 mb-1">支付完成后点击下方按钮</p>
+            <p className="text-xs text-slate-500">支付后我们将在24小时内审核并发证</p>
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+              <p className="text-xs text-red-400 text-center">{error}</p>
+            </div>
+          )}
+
+          {/* Submit button */}
+          <button
+            onClick={handlePaymentComplete}
+            disabled={submitting}
+            className="w-full py-3.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:from-slate-600 disabled:to-slate-600 text-white font-bold text-sm transition-all shadow-lg"
+          >
+            {submitting ? '提交中...' : '我已完成支付'}
+          </button>
+
+          <p className="text-[10px] text-slate-600 text-center mt-4">
+            点击按钮即表示您已确认完成支付
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 1: Form (original)
   return (
     <div className="min-h-screen bg-slate-900 p-4 pb-8">
       <div className="max-w-lg mx-auto">
-        {/* 头部 */}
+        {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-slate-100 mb-1">睿筑官方认证</h1>
           <p className="text-xs text-slate-500">依据国家标准 · 权威认证 · 全国通用</p>
         </div>
 
-        {/* 评估数据展示 */}
+        {/* Assessment data display */}
         <div className="p-4 rounded-xl bg-blue-900/20 border border-blue-800/30 mb-4">
           <h2 className="text-sm font-bold text-blue-400 mb-3">评估数据</h2>
           <div className="grid grid-cols-3 gap-2 text-xs">
@@ -138,9 +297,9 @@ export default function CertifyPage() {
           </div>
         </div>
 
-        {/* 认证申请表单 */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 评估类型 */}
+        {/* Form */}
+        <form onSubmit={handleNextStep} className="space-y-4">
+          {/* Assessment type */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">评估类型</label>
             <input
@@ -151,7 +310,7 @@ export default function CertifyPage() {
             />
           </div>
 
-          {/* 评级 */}
+          {/* Grade */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">评级</label>
             <input
@@ -162,7 +321,7 @@ export default function CertifyPage() {
             />
           </div>
 
-          {/* 房屋地址 */}
+          {/* Address */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">
               房屋地址 <span className="text-red-500">*</span>
@@ -177,7 +336,7 @@ export default function CertifyPage() {
             />
           </div>
 
-          {/* 建筑面积 */}
+          {/* Area */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">
               建筑面积 <span className="text-red-500">*</span>
@@ -195,7 +354,7 @@ export default function CertifyPage() {
             </div>
           </div>
 
-          {/* 所在地区 */}
+          {/* City */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">所在地区</label>
             <input
@@ -206,7 +365,7 @@ export default function CertifyPage() {
             />
           </div>
 
-          {/* 建筑类型 */}
+          {/* Building type */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">建筑类型</label>
             <input
@@ -217,7 +376,7 @@ export default function CertifyPage() {
             />
           </div>
 
-          {/* 联系姓名 */}
+          {/* Name */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">
               联系姓名 <span className="text-red-500">*</span>
@@ -232,7 +391,7 @@ export default function CertifyPage() {
             />
           </div>
 
-          {/* 联系电话 */}
+          {/* Phone */}
           <div>
             <label className="block text-xs text-slate-400 mb-1">联系电话</label>
             <input
@@ -243,7 +402,7 @@ export default function CertifyPage() {
             />
           </div>
 
-          {/* 确认声明 */}
+          {/* Agreement */}
           <div className="flex items-start gap-2">
             <input
               type="checkbox"
@@ -257,7 +416,14 @@ export default function CertifyPage() {
             </label>
           </div>
 
-          {/* 价格和提交按钮 */}
+          {/* Error message */}
+          {error && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+              <p className="text-xs text-red-400 text-center">{error}</p>
+            </div>
+          )}
+
+          {/* Price and submit */}
           <div className="pt-4 border-t border-slate-700/50">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-slate-400">认证费用</span>
@@ -267,12 +433,12 @@ export default function CertifyPage() {
               type="submit"
               className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-sm transition-all shadow-lg"
             >
-              提交认证申请
+              下一步：确认支付
             </button>
           </div>
         </form>
 
-        {/* 底部链接 */}
+        {/* Bottom links */}
         <div className="mt-6 text-center space-y-2">
           <button
             onClick={() => router.push('/verify')}

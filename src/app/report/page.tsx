@@ -54,6 +54,35 @@ export default function ReportPage() {
     }
   }, []);
 
+  // Save assessment result to localStorage for certification flow
+  useEffect(() => {
+    if (!formData || !result) return;
+    
+    const wallTypeName = WALL_TYPES.find(w => w.id === formData.wallType)?.name || '';
+    const roofTypeName = ROOF_TYPES.find(r => r.id === formData.roofType)?.name || '';
+    const windowTypeName = WINDOW_CONFIGS.find(w => w.id === formData.windowConfig)?.name || '';
+
+    const assessmentData = {
+      type: 'energy' as const,
+      grade: result.rating,
+      city: formData.city || '',
+      climateZone: formData.climateZone || '',
+      buildingType: formData.buildingType || '',
+      wallK: result.wallK,
+      roofK: result.roofK,
+      windowK: result.windowK,
+      wallLimit: result.wallLimit,
+      roofLimit: result.roofLimit,
+      windowLimit: result.windowLimit,
+      wallStructure: `${wallTypeName} ${formData.wallThickness || 0}mm`,
+      roofStructure: `${roofTypeName} ${formData.roofThickness || 0}mm`,
+      windowType: windowTypeName,
+      score: result.score,
+      timestamp: result.timestamp,
+    };
+    localStorage.setItem('ruizhu_assessment_result', JSON.stringify(assessmentData));
+  }, [formData, result]);
+
   // 飞书自动写入 - 注册后自动触发，静默写入
   const writeFeishuSilently = useCallback(async (phone: string) => {
     if (!formData || !result || !phone) return;
@@ -470,31 +499,11 @@ export default function ReportPage() {
             </div>
             <button
               onClick={() => {
-                // 保存评估结果到localStorage
-                const assessmentData = {
-                  type: 'energy',
-                  grade: result.rating,
-                  city: formData?.city || '',
-                  climateZone: formData?.climateZone || '',
-                  buildingType: formData?.buildingType || '',
-                  wallK: result.wallK,
-                  roofK: result.roofK,
-                  windowK: result.windowK,
-                  wallLimit: result.wallLimit,
-                  roofLimit: result.roofLimit,
-                  windowLimit: result.windowLimit,
-                  wallStructure: formData?.wallType ? `${WALL_TYPES.find(w => w.id === formData.wallType)?.name || ''} ${formData.wallThickness}mm` : '',
-                  roofStructure: formData?.roofType ? `${ROOF_TYPES.find(r => r.id === formData.roofType)?.name || ''} ${formData.roofThickness}mm` : '',
-                  windowType: WINDOW_CONFIGS.find(w => w.id === formData?.windowConfig)?.name || '',
-                  score: result.score,
-                  timestamp: result.timestamp,
-                };
-                localStorage.setItem('ruizhu_assessment_result', JSON.stringify(assessmentData));
-                router.push('/certify?type=energy');
+                router.push('/certify');
               }}
               className="w-full py-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm transition-colors shadow-md"
             >
-              申请官方认证 →
+              立即申请认证 →
             </button>
             <p className="text-[10px] text-amber-600 text-center mt-2">认证费用 ¥99 · 24小时内审核</p>
           </section>

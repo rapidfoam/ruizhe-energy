@@ -382,3 +382,108 @@ export async function updateRecordPhone(
     return { success: false, error: 'Network error' };
   }
 }
+
+// ==================== 认证记录查询 ====================
+
+export interface CertificationRecord {
+  certNo: string;
+  certType: string;
+  address: string;
+  area: string;
+  city: string;
+  buildingType: string;
+  applicantName: string;
+  phone: string;
+  wallK: string;
+  roofK: string;
+  windowK: string;
+  wallLimit: string;
+  roofLimit: string;
+  windowLimit: string;
+  paymentStatus: string;
+  issueDate: string;
+  score?: string;
+}
+
+/**
+ * 按证书编号查询认证记录
+ */
+export async function searchCertification(
+  certNo: string
+): Promise<{ success: boolean; cert?: CertificationRecord; error?: string }> {
+  const token = await getTenantAccessToken();
+  if (!token) {
+    console.warn('[Feishu] tenant_access_token 获取失败，无法查询认证记录');
+    return { success: false, error: 'token_failed' };
+  }
+
+  const appToken = process.env.FEISHU_TABLE_APP_TOKEN || '';
+  const tableId = process.env.NEXT_PUBLIC_FEISHU_CERT_TABLE_ID || 'tbl8IuarwOjEUSyU';
+
+  if (!appToken) {
+    console.warn('[Feishu] FEISHU_TABLE_APP_TOKEN 未配置，无法查询认证记录');
+    return { success: false, error: 'no_config' };
+  }
+
+  const url = `${FEISHU_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records/search`;
+
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify({
+        filter: {
+          conjunction: 'and',
+          conditions: [
+            {
+              field_name: '证书编号',
+              operator: 'is',
+              value: [certNo],
+            },
+          ],
+        },
+      }),
+    });
+
+    const json = await resp.json();
+
+    if (json.code !== 0) {
+      console.error('[Feishu] 查询认证记录失败:', json.code, json.msg);
+      return { success: false, error: json.msg || 'search_failed' };
+    }
+
+    const items = json.data?.items || [];
+    if (items.length === 0) {
+      return { success: false, error: 'not_found' };
+    }
+
+    const fields = items[0].fields as Record<string, unknown>;
+    const cert: CertificationRecord = {
+      certNo: String(fields['证书编号'] || ''),
+      certType: String(fields['认证类型'] || ''),
+      address: String(fields['房屋地址'] || ''),
+      area: String(fields['建筑面积'] || ''),
+      city: String(fields['所在地区'] || ''),
+      buildingType: String(fields['建筑类型'] || ''),
+      applicantName: String(fields['申请人姓名'] || ''),
+      phone: String(fields['手机号'] || ''),
+      wallK: String(fields['外墙K值'] || ''),
+      roofK: String(fields['屋面K值'] || ''),
+      windowK: String(fields['外窗K值'] || ''),
+      wallLimit: String(fields['外墙限值'] || ''),
+      roofLimit: String(fields['屋面限值'] || ''),
+      windowLimit: String(fields['外窗限值'] || ''),
+      paymentStatus: String(fields['支付状态'] || ''),
+      issueDate: String(fields['发证时间'] || ''),
+    };
+
+    console.info('[Feishu] 查询到认证记录:', cert.certNo);
+    return { success: true, cert };
+  } catch (err) {
+    console.error('[Feishu] 查询认证记录异常:', err);
+    return { success: false, error: 'network_error' };
+  }
+}

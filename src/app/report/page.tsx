@@ -458,6 +458,68 @@ export default function ReportPage() {
           </p>
         </section>
 
+        {/* A级认证入口 / B/C/D级优化建议 */}
+        {result.rating === "A" ? (
+          <section className="p-5 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-300">
+            <div className="flex items-start gap-3 mb-3">
+              <span className="text-3xl">🏆</span>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-amber-900">恭喜！您的建筑达到A级标准</h3>
+                <p className="text-xs text-amber-700 mt-1">可申请睿筑官方认证，获得权威认证证书</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                // 保存评估结果到localStorage
+                const assessmentData = {
+                  type: 'energy',
+                  grade: result.rating,
+                  city: formData?.city || '',
+                  climateZone: formData?.climateZone || '',
+                  buildingType: formData?.buildingType || '',
+                  wallK: result.wallK,
+                  roofK: result.roofK,
+                  windowK: result.windowK,
+                  wallLimit: result.wallLimit,
+                  roofLimit: result.roofLimit,
+                  windowLimit: result.windowLimit,
+                  wallStructure: formData?.wallType ? `${WALL_TYPES.find(w => w.id === formData.wallType)?.name || ''} ${formData.wallThickness}mm` : '',
+                  roofStructure: formData?.roofType ? `${ROOF_TYPES.find(r => r.id === formData.roofType)?.name || ''} ${formData.roofThickness}mm` : '',
+                  windowType: WINDOW_CONFIGS.find(w => w.id === formData?.windowConfig)?.name || '',
+                  score: result.score,
+                  timestamp: result.timestamp,
+                };
+                localStorage.setItem('ruizhu_assessment_result', JSON.stringify(assessmentData));
+                router.push('/certify?type=energy');
+              }}
+              className="w-full py-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm transition-colors shadow-md"
+            >
+              申请官方认证 →
+            </button>
+            <p className="text-[10px] text-amber-600 text-center mt-2">认证费用 ¥99 · 24小时内审核</p>
+          </section>
+        ) : (
+          <section className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50">
+            <h3 className="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">
+              <span className="w-1 h-4 bg-blue-500 rounded-full" />优化建议
+            </h3>
+            <div className="space-y-2 text-xs text-slate-400">
+              {!result.wallPass && (
+                <p>• <span className="text-amber-400">外墙</span>传热系数超标，建议增加保温层厚度或更换高性能保温材料</p>
+              )}
+              {!result.roofPass && (
+                <p>• <span className="text-amber-400">屋面</span>传热系数超标，建议增加保温层厚度或采用反射隔热材料</p>
+              )}
+              {!result.windowPass && (
+                <p>• <span className="text-amber-400">外窗</span>传热系数超标，建议更换为三玻两腔或Low-E中空玻璃</p>
+              )}
+              {result.wallPass && result.roofPass && result.windowPass && (
+                <p>• 各项指标均达标，继续优化可冲击A级认证</p>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* K Value Comparison */}
         <section className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50">
           <h3 className="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">

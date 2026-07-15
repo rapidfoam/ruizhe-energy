@@ -76,7 +76,7 @@ function VerifyContent() {
     setQueryState('loading');
 
     try {
-      const response = await fetch(`/api/cert-check?certNo=${encodeURIComponent(certNo)}`);
+      const response = await fetch(`/api/verify?certNo=${encodeURIComponent(certNo)}`);
       const data = await response.json();
 
       if (data.success && data.cert) {

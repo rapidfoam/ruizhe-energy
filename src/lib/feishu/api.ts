@@ -383,6 +383,24 @@ export async function updateRecordPhone(
   }
 }
 
+// ==================== 飞书字段值提取工具 ====================
+
+/**
+ * 从飞书多维表格字段值中提取文本
+ * 飞书文本字段返回格式: [{text: 'xxx', type: 'text'}]
+ * 数字字段返回格式: number
+ * 其他字段可能返回 string 或其他类型
+ */
+function extractFeishuFieldValue(field: unknown): string {
+  if (field === null || field === undefined) return '';
+  if (Array.isArray(field)) {
+    return field.map((item: { text?: string }) => item?.text || '').join('');
+  }
+  if (typeof field === 'string') return field;
+  if (typeof field === 'number') return String(field);
+  return String(field);
+}
+
 // ==================== 认证记录查询 ====================
 
 export interface CertificationRecord {
@@ -462,22 +480,22 @@ export async function searchCertification(
 
     const fields = items[0].fields as Record<string, unknown>;
     const cert: CertificationRecord = {
-      certNo: String(fields['证书编号'] || ''),
-      certType: String(fields['认证类型'] || ''),
-      address: String(fields['房屋地址'] || ''),
-      area: String(fields['建筑面积'] || ''),
-      city: String(fields['所在地区'] || ''),
-      buildingType: String(fields['建筑类型'] || ''),
-      applicantName: String(fields['申请人姓名'] || ''),
-      phone: String(fields['手机号'] || ''),
-      wallK: String(fields['外墙K值'] || ''),
-      roofK: String(fields['屋面K值'] || ''),
-      windowK: String(fields['外窗K值'] || ''),
-      wallLimit: String(fields['外墙限值'] || ''),
-      roofLimit: String(fields['屋面限值'] || ''),
-      windowLimit: String(fields['外窗限值'] || ''),
-      paymentStatus: String(fields['支付状态'] || ''),
-      issueDate: String(fields['发证时间'] || ''),
+      certNo: extractFeishuFieldValue(fields['证书编号']),
+      certType: extractFeishuFieldValue(fields['认证类型']),
+      address: extractFeishuFieldValue(fields['房屋地址']),
+      area: extractFeishuFieldValue(fields['建筑面积']),
+      city: extractFeishuFieldValue(fields['所在地区']),
+      buildingType: extractFeishuFieldValue(fields['建筑类型']),
+      applicantName: extractFeishuFieldValue(fields['申请人姓名']),
+      phone: extractFeishuFieldValue(fields['手机号']),
+      wallK: extractFeishuFieldValue(fields['外墙K值']),
+      roofK: extractFeishuFieldValue(fields['屋面K值']),
+      windowK: extractFeishuFieldValue(fields['外窗K值']),
+      wallLimit: extractFeishuFieldValue(fields['外墙限值']),
+      roofLimit: extractFeishuFieldValue(fields['屋面限值']),
+      windowLimit: extractFeishuFieldValue(fields['外窗限值']),
+      paymentStatus: extractFeishuFieldValue(fields['支付状态']),
+      issueDate: extractFeishuFieldValue(fields['发证时间']),
     };
 
     console.info('[Feishu] 查询到认证记录:', cert.certNo);

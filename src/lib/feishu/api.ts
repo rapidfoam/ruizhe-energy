@@ -25,7 +25,7 @@ let tokenExpireAt: number = 0;
 /**
  * 获取飞书 tenant_access_token（带缓存）
  */
-async function getTenantAccessToken(): Promise<string | null> {
+export async function getTenantAccessToken(): Promise<string | null> {
   const appId = process.env.FEISHU_APP_ID;
   const appSecret = process.env.FEISHU_APP_SECRET;
 
@@ -96,7 +96,7 @@ export interface FeishuAssessmentData {
 /**
  * 构建飞书表格字段（严格匹配表格列名）
  */
-function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
+export function buildFields(data: FeishuAssessmentData): Record<string, unknown> {
   // 达标判定：综合三个部位（使用简洁文本，匹配飞书select选项）
   const allCompliant = data.wallCompliant && data.roofCompliant && data.windowCompliant;
   const noneCompliant = !data.wallCompliant && !data.roofCompliant && !data.windowCompliant;

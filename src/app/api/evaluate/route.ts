@@ -18,6 +18,11 @@ import {
   calculateRating,
   estimateHeatLoss,
 } from "@/lib/engine/calculator";
+import {
+  getTenantAccessToken,
+  buildFields,
+  type FeishuAssessmentData,
+} from "@/lib/feishu/api";
 
 // ── 外部参数 → 内部ID 映射 ──────────────────────────────
 
@@ -90,6 +95,7 @@ interface EvaluateRequest {
   windowType: string;
   shapeCoefficient?: number | null;
   windowWallRatio?: number | null;
+  phone?: string | null;
 }
 
 // ── 辅助函数 ─────────────────────────────────────────────
@@ -194,6 +200,46 @@ function generateSuggestions(
   const parts = issues.map((i) => `${i.name}K值超标${round2(i.excess)}%`);
   const main = issues[0];
   return `${parts.join("，")}。${main.name}是最大短板，建议优先加强${main.name}保温。`;
+}
+
+// ── 飞书写入（复用 buildFields，无手机号也可写入）────────────
+
+async function writeToFeishu(data: FeishuAssessmentData): Promise<void> {
+  const token = await getTenantAccessToken();
+  if (!token) {
+    console.info("[/api/evaluate] 飞书服务未配置，跳过写入");
+    return;
+  }
+
+  const appToken = process.env.FEISHU_TABLE_APP_TOKEN;
+  const tableId = process.env.FEISHU_TABLE_ID;
+  if (!appToken || !tableId) {
+    console.info("[/api/evaluate] 表格配置不完整，跳过写入");
+    return;
+  }
+
+  const fields = buildFields(data);
+
+  const response = await fetch(
+    `https://open.feishu.cn/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ records: [{ fields }] }),
+    }
+  );
+
+  const result = await response.json();
+  if (result.code !== 0) {
+    console.error("[/api/evaluate] 飞书写入失败:", result.msg);
+    return;
+  }
+
+  const recordId = result.data?.records?.[0]?.record_id;
+  console.info("[/api/evaluate] 飞书写入成功, recordId:", recordId);
 }
 
 // ── POST Handler ─────────────────────────────────────────
@@ -334,34 +380,67 @@ export async function POST(request: Request) {
     // 12. 构建响应
     const buildingTypeName = getBuildingTypeName(buildingType, body.residentialSubType);
 
+    const responseData = {
+      city: body.city,
+      climateZone: climateZoneLabel,
+      buildingType: buildingTypeName,
+      wallK: round2(wallResult.kValue),
+      wallLimit: limits.wallK,
+      wallStatus: ratingResult.wallStatus === "pass" ? "达标" : "超标",
+      wallOverPercent: round2(ratingResult.wallExcess),
+      roofK: round2(roofResult.kValue),
+      roofLimit: limits.roofK,
+      roofStatus: ratingResult.roofStatus === "pass" ? "达标" : "超标",
+      roofOverPercent: round2(ratingResult.roofExcess),
+      windowK: round2(windowCfg.kValue),
+      windowLimit: limits.windowK,
+      windowStatus: ratingResult.windowStatus === "pass" ? "达标" : "超标",
+      windowOverPercent: round2(ratingResult.windowExcess),
+      rating: ratingResult.rating,
+      score: ratingResult.score,
+      heatLoss: {
+        wall: heatLoss.wall,
+        roof: heatLoss.roof,
+        window: heatLoss.window,
+        other: heatLoss.infiltration,
+      },
+      suggestions,
+    };
+
+    // 13. 异步写入飞书多维表格（不阻塞响应，失败仅记日志）
+    const feishuWritePromise = writeToFeishu({
+      city: body.city,
+      climateZone: climateZoneLabel,
+      buildingType: buildingTypeName,
+      wallKValue: round2(wallResult.kValue),
+      roofKValue: round2(roofResult.kValue),
+      windowKValue: round2(windowCfg.kValue),
+      wallLimit: limits.wallK,
+      roofLimit: limits.roofK,
+      windowLimit: limits.windowK,
+      wallCompliant: ratingResult.wallStatus === "pass",
+      roofCompliant: ratingResult.roofStatus === "pass",
+      windowCompliant: ratingResult.windowStatus === "pass",
+      rating: ratingResult.rating,
+      score: ratingResult.score,
+      phone: body.phone || "",
+      wallConstruction: `${wallType.name} ${body.wallThickness}mm${wallInsulation.id !== "none" ? ` + ${wallInsulation.name} ${wallInsThickness}mm` : ""}`,
+      roofConstruction: `${roofType.name} 120mm${roofInsulation.id !== "roof_none" ? ` + ${roofInsulation.name} ${roofInsThickness}mm` : ""}`,
+      windowType: windowCfg.name,
+      referralSource: "",
+    }).catch((err) => {
+      console.warn("[/api/evaluate] 飞书写入失败（静默处理）:", err);
+    });
+
+    // 等待飞书写入完成（最多3秒），但不影响响应
+    await Promise.race([
+      feishuWritePromise,
+      new Promise((resolve) => setTimeout(resolve, 3000)),
+    ]);
+
     return NextResponse.json({
       success: true,
-      data: {
-        city: body.city,
-        climateZone: climateZoneLabel,
-        buildingType: buildingTypeName,
-        wallK: round2(wallResult.kValue),
-        wallLimit: limits.wallK,
-        wallStatus: ratingResult.wallStatus === "pass" ? "达标" : "超标",
-        wallOverPercent: round2(ratingResult.wallExcess),
-        roofK: round2(roofResult.kValue),
-        roofLimit: limits.roofK,
-        roofStatus: ratingResult.roofStatus === "pass" ? "达标" : "超标",
-        roofOverPercent: round2(ratingResult.roofExcess),
-        windowK: round2(windowCfg.kValue),
-        windowLimit: limits.windowK,
-        windowStatus: ratingResult.windowStatus === "pass" ? "达标" : "超标",
-        windowOverPercent: round2(ratingResult.windowExcess),
-        rating: ratingResult.rating,
-        score: ratingResult.score,
-        heatLoss: {
-          wall: heatLoss.wall,
-          roof: heatLoss.roof,
-          window: heatLoss.window,
-          other: heatLoss.infiltration,
-        },
-        suggestions,
-      },
+      data: responseData,
     });
   } catch (err) {
     console.error("[/api/evaluate] Error:", err);

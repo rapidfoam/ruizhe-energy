@@ -20,23 +20,10 @@ export default function ReportPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const [debugInfo, setDebugInfo] = useState<string>("");
-
   useEffect(() => {
     try {
       const formStr = sessionStorage.getItem("evaluationForm");
       const resultStr = sessionStorage.getItem("evaluationResult");
-      
-      // Debug info for troubleshooting
-      const debug = {
-        formExists: !!formStr,
-        resultExists: !!resultStr,
-        formKeys: formStr ? Object.keys(JSON.parse(formStr)) : [],
-        resultKeys: resultStr ? Object.keys(JSON.parse(resultStr)) : [],
-        formPreview: formStr ? formStr.substring(0, 200) : "null",
-        storageAvailable: typeof window !== "undefined" && "sessionStorage" in window,
-      };
-      setDebugInfo(JSON.stringify(debug, null, 2));
       
       if (formStr) setFormData(JSON.parse(formStr));
       if (resultStr) setResult(JSON.parse(resultStr));
@@ -50,7 +37,7 @@ export default function ReportPage() {
         setShowAuthModal(true);
       }
     } catch (err) {
-      setDebugInfo(`Error reading sessionStorage: ${err}`);
+      console.error("Failed to read sessionStorage:", err);
     }
   }, []);
 
@@ -125,7 +112,7 @@ export default function ReportPage() {
         referralSource,
       };
 
-      console.info('[Feishu] 自动写入数据:', feishuData);
+      console.info('[Feishu] Writing assessment data...');
 
       const response = await fetch('/api/feishu/write', {
         method: 'POST',
@@ -134,7 +121,6 @@ export default function ReportPage() {
       });
       
       const data = await response.json();
-      console.log('[Feishu] 自动写入结果:', data);
       
       if (data.feishuWritten) {
         sessionStorage.setItem("feishuWritten", "true");
@@ -302,16 +288,6 @@ export default function ReportPage() {
           >
             返回填写
           </button>
-          
-          {/* Debug Info */}
-          <details className="mt-6 text-left">
-            <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-400 mb-2">
-              调试信息（点击展开）
-            </summary>
-            <pre className="text-[10px] text-slate-500 bg-slate-800/50 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all">
-              {debugInfo || "No debug info available"}
-            </pre>
-          </details>
         </div>
       </div>
     );

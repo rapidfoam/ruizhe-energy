@@ -32,8 +32,12 @@ export default function ChatAssessPage() {
                 <span className="text-sm">🏠</span>
               </div>
             )}
-            <div className={`max-w-[80%] ${msg.type === "user" ? "bg-blue-600 text-white" : "bg-white"} rounded-2xl px-4 py-3 shadow-sm`}>
-              <p className="text-sm whitespace-pre-line">{msg.text}</p>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+              msg.type === "user"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-[#1f2937]"
+            }`}>
+              <p className={`text-sm whitespace-pre-line font-medium ${msg.type === "user" ? "text-white" : "text-[#1f2937]"}`}>{msg.text}</p>
               {msg.quickReplies && msg.quickReplies.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {msg.quickReplies.map((reply, idx) => (
@@ -41,10 +45,10 @@ export default function ChatAssessPage() {
                       key={idx}
                       onClick={() => !reply.disabled && handleQuickReply(reply)}
                       disabled={reply.disabled}
-                      className={`px-4 py-2 rounded-full text-sm transition-all ${
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                         reply.disabled
-                          ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                          : "bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200"
+                          ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                          : "bg-blue-50 text-[#1f2937] border border-blue-200 hover:bg-blue-100 active:bg-blue-200"
                       }`}
                     >
                       {reply.text}
@@ -62,7 +66,7 @@ export default function ChatAssessPage() {
                     onFocus={() => setShowCityDropdown(true)}
                     onKeyDown={(e) => e.key === "Enter" && handleInputSubmit()}
                     placeholder="输入城市名称..."
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-[#1f2937] placeholder:text-slate-400 focus:outline-none focus:border-blue-400"
                   />
                   {showCityDropdown && cityResults.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto z-10">
@@ -70,10 +74,10 @@ export default function ChatAssessPage() {
                         <button
                           key={idx}
                           onClick={() => handleCitySelect(city)}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-blue-50 flex justify-between items-center"
+                          className="w-full px-4 py-2 text-left text-sm text-[#1f2937] hover:bg-blue-50 flex justify-between items-center"
                         >
-                          <span>{city.name}</span>
-                          <span className="text-xs text-slate-400">{city.province}</span>
+                          <span className="font-medium">{city.name}</span>
+                          <span className="text-xs text-slate-500">{city.province}</span>
                         </button>
                       ))}
                     </div>
@@ -89,7 +93,7 @@ export default function ChatAssessPage() {
                 </button>
               )}
               {msg.showPhotoUpload && (
-                <label className="mt-3 flex items-center justify-center gap-2 py-2 border-2 border-dashed border-slate-300 rounded-lg text-sm text-slate-500 cursor-pointer hover:border-blue-400 hover:text-blue-500">
+                <label className="mt-3 flex items-center justify-center gap-2 py-2 border-2 border-dashed border-slate-400 rounded-lg text-sm text-slate-600 cursor-pointer hover:border-blue-500 hover:text-blue-600">
                   <span>📷</span>
                   <span>点击拍照或选择图片</span>
                   <input type="file" accept="image/*" capture="environment" className="hidden" onChange={() => handleQuickReply({ text: "📷 已拍照", value: "photo_uploaded" })} />

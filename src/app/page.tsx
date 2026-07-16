@@ -1,4 +1,5 @@
 "use client";
+// HomePage v2 - 20260716
 
 import { useEffect, useState } from "react";
 import Link from "next/link";

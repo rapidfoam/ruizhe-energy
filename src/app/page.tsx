@@ -63,10 +63,7 @@ export default function HomePage() {
       <main className="flex-1 px-4 pb-8 max-w-4xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 筑能卡片 */}
-          <Link
-            href="/form"
-            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 overflow-hidden"
-          >
+          <div className="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 overflow-hidden">
             <div className="p-8">
               {/* 图标 */}
               <div className="text-5xl mb-4">🏠</div>
@@ -99,12 +96,23 @@ export default function HomePage() {
                 </span>
               </div>
 
-              {/* 按钮 */}
-              <button className="w-full py-3 rounded-xl bg-[#1A3A5C] text-white font-medium hover:bg-[#244a70] transition-colors">
-                开始评估
-              </button>
+              {/* 按钮组 */}
+              <div className="flex gap-3">
+                <Link
+                  href="/chat-assess"
+                  className="flex-1 text-center py-3 rounded-xl bg-[#1A3A5C] text-white font-medium hover:bg-[#244a70] transition-colors"
+                >
+                  💬 智能评估
+                </Link>
+                <Link
+                  href="/form"
+                  className="flex-1 text-center py-3 rounded-xl border-2 border-[#1A3A5C] text-[#1A3A5C] font-medium hover:bg-slate-50 transition-colors"
+                >
+                  手动填写
+                </Link>
+              </div>
             </div>
-          </Link>
+          </div>
 
           {/* 筑静卡片 */}
           <div className="relative bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden opacity-90">

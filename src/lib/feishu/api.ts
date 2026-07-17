@@ -75,6 +75,9 @@ export interface FeishuAssessmentData {
   city: string;
   climateZone: string;
   buildingType: string;
+  buildingArea?: number | null;
+  buildingFloors?: number | null;
+  shapeCoefficient?: number | null;
   wallKValue: number;
   roofKValue: number;
   windowKValue: number;
@@ -161,6 +164,17 @@ export function buildFields(data: FeishuAssessmentData): Record<string, unknown>
     '窗户类型': data.windowType || '-',
     '推荐来源': data.referralSource || '',
   };
+
+  // 可选字段：建筑规模（占地面积、层数、体形系数）
+  if (data.buildingArea != null) {
+    fields['占地面积'] = Number(data.buildingArea);
+  }
+  if (data.buildingFloors != null) {
+    fields['建筑层数'] = Number(data.buildingFloors);
+  }
+  if (data.shapeCoefficient != null) {
+    fields['体形系数'] = Number(data.shapeCoefficient);
+  }
 
   // 调试日志：打印原始数据和转换后的字段
   console.info('[Feishu] 原始K值数据:', {

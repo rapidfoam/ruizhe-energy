@@ -128,6 +128,21 @@ export interface HeatLossDistribution {
   infiltration: number;
 }
 
+// 体形系数计算
+// 体形系数 = 建筑物与室外大气接触的外表面积 / 包围的体积
+// 按长方体简化模型：占地面积 × 层数 × 层高(3m)
+export function calculateShapeCoefficient(area: number, floors: number): number {
+  const floorHeight = 3; // 标准层高3m
+  const height = floors * floorHeight;
+  const perimeter = 4 * Math.sqrt(area); // 假设正方形平面
+  const wallArea = perimeter * height; // 外墙面积
+  const roofArea = area; // 屋顶面积
+  const groundArea = area; // 接地面积（不算入外表面积）
+  const totalExternalArea = wallArea + roofArea; // 外表面积（不含地面）
+  const volume = area * height;
+  return totalExternalArea / volume;
+}
+
 export function estimateHeatLoss(
   wallK: number, roofK: number, windowK: number,
   wallAreaRatio: number, roofAreaRatio: number, windowRatio: number

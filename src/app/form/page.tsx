@@ -18,6 +18,7 @@ import {
   calculateRoofK,
   calculateRating,
   estimateHeatLoss,
+  calculateShapeCoefficient,
 } from "@/lib/engine/calculator";
 import { getStandardLimits } from "@/lib/data/standards";
 import { getBuildingType } from "@/lib/data/building-types";
@@ -33,6 +34,8 @@ export default function FormPage() {
     city: "",
     climateZone: null,
     buildingType: null,
+    buildingArea: null,
+    buildingFloors: null,
     wallType: "",
     wallThickness: 200,
     wallInsulation: "",
@@ -152,6 +155,11 @@ export default function FormPage() {
       })),
       wallTotalResistance: wallResult.totalResistance,
       roofTotalResistance: roofResult.totalResistance,
+      buildingArea: formData.buildingArea,
+      buildingFloors: formData.buildingFloors,
+      shapeCoefficient: (formData.buildingArea && formData.buildingFloors)
+        ? Math.round(calculateShapeCoefficient(formData.buildingArea, formData.buildingFloors) * 100) / 100
+        : null,
       timestamp: new Date().toISOString(),
     };
 
@@ -323,14 +331,55 @@ function StepBuildingType({ formData, updateField }: StepProps) {
       {formData.buildingType && (() => {
         const info = getBuildingType(formData.buildingType);
         return (
-          <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/50">
-            <p className="text-xs text-slate-400 mb-2">建筑参数参考值:</p>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div><p className="text-xs text-slate-500">窗墙比</p><p className="text-sm font-mono text-slate-300">{(info.windowRatio * 100).toFixed(0)}%</p></div>
-              <div><p className="text-xs text-slate-500">墙地比</p><p className="text-sm font-mono text-slate-300">{info.wallAreaRatio.toFixed(1)}</p></div>
-              <div><p className="text-xs text-slate-500">屋面比</p><p className="text-sm font-mono text-slate-300">{info.roofAreaRatio.toFixed(2)}</p></div>
+          <>
+            {/* 建筑规模输入 */}
+            <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50 space-y-3">
+              <p className="text-xs text-slate-400 font-medium">建筑规模（用于体形系数计算）</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] text-slate-500 mb-1">占地面积 (m²)</label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={100000}
+                    value={formData.buildingArea ?? ""}
+                    onChange={(e) => updateField("buildingArea", e.target.value ? Number(e.target.value) : null)}
+                    placeholder="如：200"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-900/60 border border-slate-600/50 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-slate-500 mb-1">层数</label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={100}
+                    value={formData.buildingFloors ?? ""}
+                    onChange={(e) => updateField("buildingFloors", e.target.value ? Number(e.target.value) : null)}
+                    placeholder="如：6"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-900/60 border border-slate-600/50 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 font-mono"
+                  />
+                </div>
+              </div>
+              {formData.buildingArea && formData.buildingFloors && (
+                <p className="text-[11px] text-blue-400/70">
+                  体形系数 ≈ {calculateShapeCoefficient(formData.buildingArea, formData.buildingFloors).toFixed(2)}
+                  （体形系数越大，散热越快，节能要求越高）
+                </p>
+              )}
             </div>
-          </div>
+            {/* 建筑参数参考值 */}
+            <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/50">
+              <p className="text-xs text-slate-400 mb-2">建筑参数参考值:</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div><p className="text-xs text-slate-500">窗墙比</p><p className="text-sm font-mono text-slate-300">{(info.windowRatio * 100).toFixed(0)}%</p></div>
+                <div><p className="text-xs text-slate-500">墙地比</p><p className="text-sm font-mono text-slate-300">{info.wallAreaRatio.toFixed(1)}</p></div>
+                <div><p className="text-xs text-slate-500">屋面比</p><p className="text-sm font-mono text-slate-300">{info.roofAreaRatio.toFixed(2)}</p></div>
+              </div>
+            </div>
+          </>
         );
       })()}
     </div>

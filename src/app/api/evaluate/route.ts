@@ -84,6 +84,7 @@ interface EvaluateRequest {
   buildingType: string;
   residentialSubType?: string | null;
   buildingArea?: number | null;
+  buildingFloors?: number | null;
   buildingYear?: number | null;
   wallType: string;
   wallThickness: number;
@@ -380,10 +381,25 @@ export async function POST(request: Request) {
     // 12. 构建响应
     const buildingTypeName = getBuildingTypeName(buildingType, body.residentialSubType);
 
+    // 计算体形系数
+    let shapeCoefficient: number | null = null;
+    if (body.shapeCoefficient != null) {
+      shapeCoefficient = round2(body.shapeCoefficient);
+    } else if (body.buildingArea && body.buildingFloors) {
+      const floorHeight = 3;
+      const height = body.buildingFloors * floorHeight;
+      const perimeter = 4 * Math.sqrt(body.buildingArea);
+      const externalArea = perimeter * height + body.buildingArea;
+      shapeCoefficient = round2(externalArea / (body.buildingArea * height));
+    }
+
     const responseData = {
       city: body.city,
       climateZone: climateZoneLabel,
       buildingType: buildingTypeName,
+      buildingArea: body.buildingArea || null,
+      buildingFloors: body.buildingFloors || null,
+      shapeCoefficient,
       wallK: round2(wallResult.kValue),
       wallLimit: limits.wallK,
       wallStatus: ratingResult.wallStatus === "pass" ? "达标" : "超标",
@@ -412,6 +428,9 @@ export async function POST(request: Request) {
       city: body.city,
       climateZone: climateZoneLabel,
       buildingType: buildingTypeName,
+      buildingArea: body.buildingArea || null,
+      buildingFloors: body.buildingFloors || null,
+      shapeCoefficient,
       wallKValue: round2(wallResult.kValue),
       roofKValue: round2(roofResult.kValue),
       windowKValue: round2(windowCfg.kValue),

@@ -94,6 +94,9 @@ export default function ReportPage() {
         city: formData.city || '',
         climateZone: formData.climateZone || '',
         buildingType: formData.buildingType || '',
+        buildingArea: formData.buildingArea ?? null,
+        buildingFloors: formData.buildingFloors ?? null,
+        shapeCoefficient: result.shapeCoefficient ?? null,
         wallKValue: result.wallK,
         roofKValue: result.roofK,
         windowKValue: result.windowK,
@@ -433,6 +436,9 @@ export default function ReportPage() {
             <InfoItem label="气候分区" value={zoneLabel} />
             <InfoItem label="建筑类型" value={bType?.name || ""} />
             <InfoItem label="外窗配置" value={windowCfg?.name || ""} />
+            {formData.buildingArea && <InfoItem label="占地面积" value={`${formData.buildingArea} m²`} />}
+            {formData.buildingFloors && <InfoItem label="建筑层数" value={`${formData.buildingFloors} 层`} />}
+            {result.shapeCoefficient && <InfoItem label="体形系数" value={result.shapeCoefficient.toFixed(2)} />}
           </div>
         </section>
 

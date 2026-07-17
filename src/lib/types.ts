@@ -11,6 +11,10 @@ export interface FormData {
   // Step 2: 建筑类型
   buildingType: BuildingType | null;
 
+  // Step 2b: 建筑规模
+  buildingArea: number | null; // 占地面积(m²)
+  buildingFloors: number | null; // 层数
+
   // Step 3: 外墙构造
   wallType: string; // 墙体类型ID
   wallThickness: number; // mm
@@ -31,6 +35,8 @@ export const INITIAL_FORM_DATA: FormData = {
   city: "",
   climateZone: null,
   buildingType: null,
+  buildingArea: null,
+  buildingFloors: null,
   wallType: "",
   wallThickness: 200,
   wallInsulation: "",
@@ -67,5 +73,8 @@ export interface EvaluationResult {
   roofLayers: { name: string; thickness: number; resistance: number; lambdaC: number }[];
   wallTotalResistance: number;
   roofTotalResistance: number;
+  buildingArea?: number | null;
+  buildingFloors?: number | null;
+  shapeCoefficient?: number | null;
   timestamp: string;
 }

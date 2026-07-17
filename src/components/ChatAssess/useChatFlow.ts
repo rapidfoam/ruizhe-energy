@@ -7,7 +7,7 @@ import { CITIES, CLIMATE_ZONE_LABELS } from "@/lib/data/climate";
 import { BUILDING_TYPES, getBuildingType, type BuildingType } from "@/lib/data/building-types";
 import { WALL_TYPES, INSULATION_MATERIALS, ROOF_TYPES, ROOF_INSULATION_MATERIALS, WINDOW_CONFIGS } from "@/lib/data/materials";
 import { getStandardLimits } from "@/lib/data/standards";
-import { calculateWallK, calculateRoofK, calculateRating, estimateHeatLoss } from "@/lib/engine/calculator";
+import { calculateWallK, calculateRoofK, calculateRating, estimateHeatLoss, calculateShapeCoefficient } from "@/lib/engine/calculator";
 import type { EvaluationResult, FormData } from "@/lib/types";
 import type { ChatMessage, ChatStep, ChatData, QuickReply } from "./types";
 import {
@@ -47,7 +47,7 @@ export function useChatFlow() {
     }
   }, []);
 
-  const addBotMessage = (text: string, quickReplies?: QuickReply[], options?: { showInput?: boolean; showSubmit?: boolean; showPhotoUpload?: boolean }) => {
+  const addBotMessage = (text: string, quickReplies?: QuickReply[], options?: { showInput?: boolean; showNumericInput?: boolean; numericPlaceholder?: string; showSubmit?: boolean; showPhotoUpload?: boolean }) => {
     setMessages((prev) => [...prev, { id: generateId(), type: "bot", text, quickReplies, ...options }]);
   };
 
@@ -91,15 +91,42 @@ export function useChatFlow() {
           setStep("residential_subtype");
           addBotMessage("是哪种住宅呢？", RESIDENTIAL_SUBTYPE_OPTIONS);
         } else {
-          setStep("year");
-          addBotMessage("大概是哪年建成的？\n不同年代的建筑执行不同的国家节能标准，这会影响评估结果。", YEAR_OPTIONS);
+          setStep("building_area");
+          addBotMessage("好的！\n\n你的建筑占地面积大约是多少平方米？\n（输入数字即可，如：500）", [], { showNumericInput: true, numericPlaceholder: "占地面积 (m²)" });
         }
         break;
 
       case "residential_subtype":
         updateData({ residentialSubtype: value });
-        setStep("year");
-        addBotMessage("了解了！\n\n房子大概是哪年建成的？\n不同年代的建筑执行不同的国家节能标准，这会影响评估结果。", YEAR_OPTIONS);
+        setStep("building_area");
+        addBotMessage("了解了！\n\n你的建筑占地面积大约是多少平方米？\n（输入数字即可，如：200）", [], { showNumericInput: true, numericPlaceholder: "占地面积 (m²)" });
+        break;
+
+      case "building_area":
+        {
+          const area = parseFloat(value);
+          if (isNaN(area) || area <= 0) {
+            addBotMessage("请输入有效的面积数字（如：200）", [], { showNumericInput: true, numericPlaceholder: "占地面积 (m²)" });
+            break;
+          }
+          updateData({ buildingArea: area });
+          setStep("building_floors");
+          addBotMessage(`${area}m²，收到！\n\n这栋房子共有几层？\n（输入数字即可，如：6）`, [], { showNumericInput: true, numericPlaceholder: "层数" });
+        }
+        break;
+
+      case "building_floors":
+        {
+          const floors = parseInt(value);
+          if (isNaN(floors) || floors <= 0) {
+            addBotMessage("请输入有效的层数数字（如：6）", [], { showNumericInput: true, numericPlaceholder: "层数" });
+            break;
+          }
+          updateData({ buildingFloors: floors });
+          const sc = calculateShapeCoefficient(data.buildingArea || 200, floors);
+          setStep("year");
+          addBotMessage(`${floors}层，了解了！\n\n体形系数约 ${sc.toFixed(2)}（${sc <= 0.4 ? "较紧凑，散热少" : sc <= 0.6 ? "适中" : "偏大，散热较快"}）\n\n房子大概是哪年建成的？\n不同年代的建筑执行不同的国家节能标准，这会影响评估结果。`, YEAR_OPTIONS);
+        }
         break;
 
       case "year":
@@ -356,11 +383,17 @@ export function useChatFlow() {
       wallLayers: wallResult.layers.map((l) => ({ name: l.materialName, thickness: l.thickness, resistance: l.resistance, lambdaC: l.lambdaC })),
       roofLayers: roofResult.layers.map((l) => ({ name: l.materialName, thickness: l.thickness, resistance: l.resistance, lambdaC: l.lambdaC })),
       wallTotalResistance: wallResult.totalResistance, roofTotalResistance: roofResult.totalResistance,
+      buildingArea: data.buildingArea || null,
+      buildingFloors: data.buildingFloors || null,
+      shapeCoefficient: (data.buildingArea && data.buildingFloors)
+        ? Math.round(calculateShapeCoefficient(data.buildingArea, data.buildingFloors) * 100) / 100
+        : null,
       timestamp: new Date().toISOString(),
     };
 
     const formData: FormData = {
       city: data.city || "", climateZone: zone, buildingType: bType,
+      buildingArea: data.buildingArea || null, buildingFloors: data.buildingFloors || null,
       wallType: wallTypeId, wallThickness, wallInsulation: wallInsId, wallInsulationThickness: wallInsThick,
       roofType: roofTypeId, roofThickness, roofInsulation: roofInsId, roofInsulationThickness: roofInsThick,
       windowConfig: windowCfgId,
@@ -375,9 +408,15 @@ export function useChatFlow() {
     if (cityResults.length > 0) handleCitySelect(cityResults[0]);
   };
 
+  const handleNumericSubmit = (value: string) => {
+    if (!value.trim()) return;
+    addUserMessage(value);
+    handleQuickReply({ text: value, value });
+  };
+
   return {
     step, messages, data, citySearch, setCitySearch, showCityDropdown, setShowCityDropdown,
     cityResults, messagesEndRef, inputRef, addBotMessage, addUserMessage, updateData,
-    handleQuickReply, handleSubmit, handleInputSubmit, handleCitySelect,
+    handleQuickReply, handleSubmit, handleInputSubmit, handleCitySelect, handleNumericSubmit,
   };
 }

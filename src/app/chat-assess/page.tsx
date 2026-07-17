@@ -1,6 +1,7 @@
 // ChatAssess v2 - 20260716
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useChatFlow } from "@/components/ChatAssess/useChatFlow";
 
@@ -8,7 +9,7 @@ export default function ChatAssessPage() {
   const {
     messages, citySearch, setCitySearch, showCityDropdown, setShowCityDropdown,
     cityResults, messagesEndRef, inputRef, step,
-    handleQuickReply, handleSubmit, handleInputSubmit, handleCitySelect,
+    handleQuickReply, handleSubmit, handleInputSubmit, handleCitySelect, handleNumericSubmit,
   } = useChatFlow();
 
   return (
@@ -84,6 +85,12 @@ export default function ChatAssessPage() {
                   )}
                 </div>
               )}
+              {msg.showNumericInput && (
+                <NumericInput
+                  placeholder={msg.numericPlaceholder || "请输入数字"}
+                  onSubmit={handleNumericSubmit}
+                />
+              )}
               {msg.showSubmit && (
                 <button
                   onClick={handleSubmit}
@@ -104,6 +111,35 @@ export default function ChatAssessPage() {
         ))}
         <div ref={messagesEndRef} />
       </div>
+    </div>
+  );
+}
+
+function NumericInput({ placeholder, onSubmit }: { placeholder: string; onSubmit: (value: string) => void }) {
+  const [value, setValue] = useState("");
+  const handleSubmit = () => {
+    if (value.trim()) {
+      onSubmit(value.trim());
+      setValue("");
+    }
+  };
+  return (
+    <div className="mt-3 flex gap-2">
+      <input
+        type="number"
+        inputMode="numeric"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        placeholder={placeholder}
+        className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm text-[#1f2937] placeholder:text-slate-400 focus:outline-none focus:border-blue-400 font-mono"
+      />
+      <button
+        onClick={handleSubmit}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+      >
+        发送
+      </button>
     </div>
   );
 }

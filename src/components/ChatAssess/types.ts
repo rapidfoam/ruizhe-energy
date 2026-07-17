@@ -15,6 +15,8 @@ export interface ChatMessage {
   text: string;
   quickReplies?: QuickReply[];
   showInput?: boolean;
+  showNumericInput?: boolean;
+  numericPlaceholder?: string;
   showSubmit?: boolean;
   showPhotoUpload?: boolean;
 }
@@ -24,6 +26,8 @@ export type ChatStep =
   | "city"
   | "building_type"
   | "residential_subtype"
+  | "building_area"
+  | "building_floors"
   | "year"
   | "wall_choice"
   | "wall_type"

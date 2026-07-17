@@ -43,6 +43,7 @@ const ROOF_TYPE_MAP: Record<string, string> = {
   concrete_roof: "concrete_roof",
   timber_roof: "timber_roof",
   wood_roof: "timber_roof",
+  wood_tiled: "timber_roof",
   plywood_roof: "plywood_roof",
   osb_roof: "osb_roof",
   steel_deck: "steel_deck",
@@ -55,6 +56,10 @@ const ROOF_TYPE_MAP: Record<string, string> = {
   metal_roof: "metal_roof",
   light_wood_roof: "light_wood_roof",
   light_steel_roof: "light_steel_roof",
+  // 新增：彩钢屋面系统
+  color_steel_composite: "steel_composite_roof",
+  color_steel_tile: "steel_tile_roof",
+  light_steel_tiled: "light_steel_tiled_roof",
 };
 
 // 窗户类型映射（外部 → 内部）
@@ -89,9 +94,12 @@ interface EvaluateRequest {
   wallType: string;
   wallThickness: number;
   wallInsulationType?: string | null;
+  wallInsulation?: string | null; // 兼容字段名
   wallInsulationThickness?: number | null;
   roofType: string;
+  roofThickness?: number | null; // 屋面基层厚度（米，如0.12表示120mm）
   roofInsulationType?: string | null;
+  roofInsulation?: string | null; // 兼容字段名
   roofInsulationThickness?: number | null;
   windowType: string;
   shapeCoefficient?: number | null;
@@ -128,13 +136,31 @@ function resolveRoofInsulation(id: string | null | undefined, thickness: number)
   if (!id || id === "none" || id === "roof_none" || id === "") {
     return ROOF_INSULATION_MATERIALS.find((m) => m.id === "roof_none")!;
   }
-  // 外部ID可能是通用名如 "xps_board"，需要拼接厚度生成内部ID如 "roof_xps_60"
+  
+  // 彩钢复合板芯材（内置保温，不需要额外保温层）
+  const COMPOSITE_CORE_MAP: Record<string, string> = {
+    eps_core: "roof_eps_core",
+    pu_core: "roof_pu_core",
+    rockwool_core: "roof_rockwool_core",
+  };
+  if (COMPOSITE_CORE_MAP[id]) {
+    return ROOF_INSULATION_MATERIALS.find((m) => m.id === COMPOSITE_CORE_MAP[id]);
+  }
+  
+  // 外部ID → 内部ID 映射
   const ROOF_INS_BASE_MAP: Record<string, string> = {
+    // 板材类（需要拼接厚度）
+    xps: "roof_xps",
     xps_board: "roof_xps",
+    eps: "roof_eps",
     eps_board: "roof_eps",
-    rock_wool: "roof_rockwool",
     rockwool: "roof_rockwool",
+    rock_wool: "roof_rockwool",
+    rock_wool_board: "roof_rockwool",
     pu_board: "roof_pu",
+    glass_wool: "roof_glasswool",
+    glass_wool_board: "roof_glasswool",
+    // 喷涂类（不需要厚度）
     pu_spray: "roof_pu_spray",
     water_based_pu_spray: "roof_water_based_pu_spray",
   };
@@ -314,15 +340,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const roofInsulation = resolveRoofInsulation(body.roofInsulationType, body.roofInsulationThickness || 50);
+    // 兼容字段名：roofInsulation 或 roofInsulationType
+    const roofInsulationId = body.roofInsulation ?? body.roofInsulationType;
+    const roofInsulation = resolveRoofInsulation(roofInsulationId, body.roofInsulationThickness || 50);
     if (!roofInsulation) {
       return NextResponse.json(
-        { success: false, error: `未找到屋面保温材料"${body.roofInsulationType}"` },
+        { success: false, error: `未找到屋面保温材料"${roofInsulationId}"` },
         { status: 400 }
       );
     }
 
     const roofInsThickness = body.roofInsulationThickness || 0;
+
+    // 屋面基层厚度：从请求体获取（米转毫米），默认120mm
+    // 彩钢复合板特殊处理：保温芯材已内置，不需要额外保温层
+    const isCompositeCore = roofInsulationId && ["eps_core", "pu_core", "rockwool_core"].includes(roofInsulationId);
+    let roofBaseThickness = 120; // 默认值
+    if (body.roofThickness !== undefined && body.roofThickness !== null) {
+      // 如果值小于10，认为是米，转换为毫米；否则认为是毫米
+      roofBaseThickness = body.roofThickness < 10 ? Math.round(body.roofThickness * 1000) : body.roofThickness;
+    }
 
     // 6. 解析窗户
     const windowCfg = resolveWindowConfig(body.windowType);
@@ -341,11 +378,15 @@ export async function POST(request: Request) {
       insulationThickness: wallInsThickness,
     });
 
+    // 彩钢复合板：保温芯材已内置，不需要额外保温层，传入 roof_none
+    const roofInsulationForCalc = isCompositeCore
+      ? ROOF_INSULATION_MATERIALS.find((m) => m.id === "roof_none")!
+      : roofInsulation;
     const roofResult = calculateRoofK({
       roofType,
-      roofThickness: body.roofInsulationThickness ? 120 : 120, // 屋面基层默认120mm
-      insulationLayer: roofInsulation,
-      insulationThickness: roofInsThickness,
+      roofThickness: roofBaseThickness,
+      insulationLayer: roofInsulationForCalc,
+      insulationThickness: isCompositeCore ? 0 : roofInsThickness,
     });
 
     // 8. 获取标准限值
@@ -444,7 +485,7 @@ export async function POST(request: Request) {
       score: ratingResult.score,
       phone: body.phone || "",
       wallConstruction: `${wallType.name} ${body.wallThickness}mm${wallInsulation.id !== "none" ? ` + ${wallInsulation.name} ${wallInsThickness}mm` : ""}`,
-      roofConstruction: `${roofType.name} 120mm${roofInsulation.id !== "roof_none" ? ` + ${roofInsulation.name} ${roofInsThickness}mm` : ""}`,
+      roofConstruction: `${roofType.name} ${roofBaseThickness}mm${!isCompositeCore && roofInsulation.id !== "roof_none" ? ` + ${roofInsulation.name} ${roofInsThickness}mm` : ""}`,
       windowType: windowCfg.name,
       referralSource: "",
     }).catch((err) => {

@@ -99,6 +99,10 @@ export const ROOF_TYPES: RoofType[] = [
   { id: "metal_roof", name: "金属屋面板(含檩条)", lambda: 58.2, lambdaCorrection: 1.00, lambdaCorrected: 58.2, density: 7850, description: "彩钢板/铝镁锰板，金属热阻忽略", thicknesses: [5] },
   { id: "light_wood_roof", name: "轻型木结构屋顶", lambda: 0.14, lambdaCorrection: 1.10, lambdaCorrected: 0.154, density: 500, description: "木龙骨+OSB板+防水卷材", thicknesses: [120, 150, 180] },
   { id: "light_steel_roof", name: "轻型钢结构板屋顶", lambda: 0.20, lambdaCorrection: 1.10, lambdaCorrected: 0.22, density: 800, description: "轻钢龙骨+水泥纤维板+防水", thicknesses: [100, 120, 150] },
+  // 彩钢屋面系统
+  { id: "steel_composite_roof", name: "彩钢复合板", lambda: 0.035, lambdaCorrection: 1.10, lambdaCorrected: 0.039, density: 120, description: "彩钢复合板（保温芯材内置，总板厚即含保温）", thicknesses: [50, 75, 100, 120, 150] },
+  { id: "steel_tile_roof", name: "彩钢瓦单板", lambda: 58.2, lambdaCorrection: 1.00, lambdaCorrected: 58.2, density: 7850, description: "0.6-1mm彩钢板，热阻极低", thicknesses: [1] },
+  { id: "light_steel_tiled_roof", name: "轻钢挂瓦坡屋面", lambda: 0.13, lambdaCorrection: 1.10, lambdaCorrected: 0.143, density: 650, description: "OSB板12-18mm+防水卷材+挂瓦条+瓦片", thicknesses: [12, 15, 18] },
 ];
 
 // 屋面基层材料（保留兼容，用于计算引擎）

@@ -131,11 +131,20 @@ export const ROOF_INSULATION_MATERIALS: MaterialLayer[] = [
   { id: "roof_rockwool_50", name: "岩棉板 50mm", lambda: 0.040, lambdaCorrection: 1.25, lambdaCorrected: 0.050, category: "insulation", description: "屋面专用" },
   { id: "roof_rockwool_60", name: "岩棉板 60mm", lambda: 0.040, lambdaCorrection: 1.25, lambdaCorrected: 0.050, category: "insulation", description: "屋面专用" },
   { id: "roof_rockwool_80", name: "岩棉板 80mm", lambda: 0.040, lambdaCorrection: 1.25, lambdaCorrected: 0.050, category: "insulation", description: "屋面专用" },
+  { id: "roof_glasswool_50", name: "玻璃棉板 50mm", lambda: 0.036, lambdaCorrection: 1.20, lambdaCorrected: 0.043, category: "insulation", description: "屋面专用" },
+  { id: "roof_glasswool_60", name: "玻璃棉板 60mm", lambda: 0.036, lambdaCorrection: 1.20, lambdaCorrected: 0.043, category: "insulation", description: "屋面专用" },
+  { id: "roof_glasswool_75", name: "玻璃棉板 75mm", lambda: 0.036, lambdaCorrection: 1.20, lambdaCorrected: 0.043, category: "insulation", description: "屋面专用" },
+  { id: "roof_glasswool_80", name: "玻璃棉板 80mm", lambda: 0.036, lambdaCorrection: 1.20, lambdaCorrected: 0.043, category: "insulation", description: "屋面专用" },
+  { id: "roof_glasswool_100", name: "玻璃棉板 100mm", lambda: 0.036, lambdaCorrection: 1.20, lambdaCorrected: 0.043, category: "insulation", description: "屋面专用" },
   { id: "roof_pu_50", name: "聚氨酯板 50mm", lambda: 0.024, lambdaCorrection: 1.15, lambdaCorrected: 0.028, category: "insulation", description: "屋面专用" },
   { id: "roof_pu_60", name: "聚氨酯板 60mm", lambda: 0.024, lambdaCorrection: 1.15, lambdaCorrected: 0.028, category: "insulation", description: "屋面专用" },
   { id: "roof_pu_80", name: "聚氨酯板 80mm", lambda: 0.024, lambdaCorrection: 1.15, lambdaCorrected: 0.028, category: "insulation", description: "屋面专用" },
   { id: "roof_pu_spray", name: "喷涂硬质聚氨酯(PUR)", lambda: 0.024, lambdaCorrection: 1.10, lambdaCorrected: 0.026, category: "insulation", commonThicknesses: [30,40,50,60,80,100], description: "屋面喷涂硬泡聚氨酯，无缝密封" },
   { id: "roof_water_based_pu_spray", name: "喷涂水性软泡聚氨酯(开孔)", lambda: 0.038, lambdaCorrection: 1.10, lambdaCorrected: 0.042, category: "insulation", commonThicknesses: [30,40,50,60,80,100,120], description: "屋面水性软泡聚氨酯喷涂，环保开孔结构" },
+  // 彩钢复合板芯材（保温芯材内置，厚度即总板厚）
+  { id: "roof_eps_core", name: "EPS芯材（彩钢复合板）", lambda: 0.041, lambdaCorrection: 1.20, lambdaCorrected: 0.049, category: "insulation", description: "彩钢复合板EPS芯材" },
+  { id: "roof_pu_core", name: "PU芯材（彩钢复合板）", lambda: 0.024, lambdaCorrection: 1.10, lambdaCorrected: 0.026, category: "insulation", description: "彩钢复合板聚氨酯芯材" },
+  { id: "roof_rockwool_core", name: "岩棉芯材（彩钢复合板）", lambda: 0.044, lambdaCorrection: 1.20, lambdaCorrected: 0.053, category: "insulation", description: "彩钢复合板岩棉芯材" },
   { id: "roof_none", name: "无保温层", lambda: 0, lambdaCorrection: 1.0, lambdaCorrected: 0, category: "insulation", description: "不设保温" },
 ];
 
